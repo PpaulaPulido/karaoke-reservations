@@ -5,52 +5,227 @@ import {
     setupRealTimeNameValidation,
     setupRealTimeEmailValidation,
     setupRealTimePasswordValidation,
+    validateFullName,
+    validateEmail,
+    validatePassword,
+    validatePasswordMatch,
+    validatePhoneNumber,
+    showError,
+    hideError
 } from './validation.js';
+
+const validationState = {
+    fullName: false,
+    email: false,
+    phoneNumber: false,
+    password: false,
+    confirmPassword: false
+};
 
 document.addEventListener("DOMContentLoaded", function() {
     
     loadPhoneLibrary().then(() => {
         setupAllValidations();
+        setupFormSubmission();
     }).catch(error => {
         console.error("Error cargando librería de teléfono:", error);
         setupBasicValidations();
+        setupFormSubmission(); 
     });
 });
 
-document.addEventListener("DOMContentLoaded", function() {
+// Función para configurar la validación del envío del formulario
+function setupFormSubmission() {
+    const registerForm = document.getElementById("registerForm");
+    const registerButton = document.getElementById("registerButton");
+    
+    if (!registerForm) return;
+    
+    registerForm.addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevenir envío por defecto
+        
+        // Validar todos los campos antes de enviar
+        if (validateAllFields()) {
+            submitForm();
+        } else {
+            // Mostrar mensaje de error general
+            showMessage("Por favor, corrige los errores en el formulario antes de enviar.", "error");
+            scrollToFirstError();
+        }
+    });
+}
+
+
+function validateAllFields() {
+    let allValid = true;
+    
+    // Validar nombre completo
+    if (!validateFullNameField()) allValid = false;
+    
+    // Validar email
+    if (!validateEmailField()) allValid = false;
+    
+    // Validar teléfono
+    if (!validatePhoneField()) allValid = false;
+    
+    // Validar contraseña
+    if (!validatePasswordField()) allValid = false;
+    
+    // Validar confirmación de contraseña
+    if (!validateConfirmPasswordField()) allValid = false;
+    
+    return allValid;
+}
+
+// Función de validación para nombre completo
+function validateFullNameField() {
+    const fullNameInput = document.getElementById("fullName");
+    const fullNameError = document.getElementById("fullNameError");
+    const fullName = fullNameInput.value.trim();
+    
+    const result = validateFullName(fullName);
+    
+    if (!result.isValid) {
+        showError(fullNameInput, fullNameError, result.error);
+        validationState.fullName = false;
+        return false;
+    }
+    
+    hideError(fullNameInput, fullNameError);
+    validationState.fullName = true;
+    return true;
+}
+
+// Función de validación para email
+function validateEmailField() {
     const emailInput = document.getElementById("email");
     const emailError = document.getElementById("emailError");
+    const email = emailInput.value.trim();
+    
+    const result = validateEmail(email);
+    
+    if (!result.isValid) {
+        showError(emailInput, emailError, result.error);
+        validationState.email = false;
+        return false;
+    }
 
-    let timeout = null;
+    if (!checkEmailExistsSync(email)) {
+        showError(emailInput, emailError, "El email ya está registrado en el sistema");
+        validationState.email = false;
+        return false;
+    }
+    
+    hideError(emailInput, emailError);
+    validationState.email = true;
+    return true;
+}
 
-    emailInput.addEventListener("input", function() {
-        clearTimeout(timeout);
+// Función de validación para teléfono
+function validatePhoneField() {
+    const phoneInput = document.getElementById("phoneNumber");
+    const phoneError = document.getElementById("phoneError");
+    
+    const iti = window.intlTelInputGlobals.getInstance(phoneInput);
+    
+    const result = validatePhoneNumber(phoneInput, iti);
+    
+    if (!result.isValid) {
+        showError(phoneInput, phoneError, result.error);
+        validationState.phoneNumber = false;
+        return false;
+    }
+    
+    hideError(phoneInput, phoneError);
+    validationState.phoneNumber = true;
+    return true;
+}
 
-        // Espera 500ms después de que el usuario deja de escribir
-        timeout = setTimeout(() => {
-            const email = emailInput.value.trim();
-            if (email.length === 0) {
-                emailError.textContent = "";
-                return;
-            }
+// Función de validación para contraseña
+function validatePasswordField() {
+    const passwordInput = document.getElementById("password");
+    const passwordError = document.getElementById("passwordError");
+    const password = passwordInput.value;
+    
+    const result = validatePassword(password);
+    
+    if (!result.isValid) {
+        showError(passwordInput, passwordError, result.error);
+        validationState.password = false;
+        return false;
+    }
+    
+    hideError(passwordInput, passwordError);
+    validationState.password = true;
+    return true;
+}
 
-            fetch(`/api/check-email?email=${encodeURIComponent(email)}`)
-                .then(response => response.json())
-                .then(exists => {
-                    if (exists) {
-                        emailError.textContent = "El email ya está registrado";
-                        emailError.style.color = "red";
-                    } else {
-                        emailError.textContent = "";
-                    }
-                })
-                .catch(err => {
-                    console.error("Error al verificar email:", err);
-                });
-        }, 500);
-    });
-});
+// Función de validación para confirmar contraseña
+function validateConfirmPasswordField() {
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    const confirmPasswordError = document.getElementById("confirmPasswordError");
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    
+    const result = validatePasswordMatch(password, confirmPassword);
+    
+    if (!result.isValid) {
+        showError(confirmPasswordInput, confirmPasswordError, result.error);
+        validationState.confirmPassword = false;
+        return false;
+    }
+    
+    hideError(confirmPasswordInput, confirmPasswordError);
+    validationState.confirmPassword = true;
+    return true;
+}
 
+function checkEmailExistsSync(email) {
+    return true;
+}
+
+// Función para enviar el formulario
+function submitForm() {
+    const registerForm = document.getElementById("registerForm");
+    const registerButton = document.getElementById("registerButton");
+    const buttonText = registerButton.querySelector(".button-text");
+    const buttonLoader = registerButton.querySelector(".button-loader");
+    
+    // Mostrar loading
+    buttonText.style.display = "none";
+    buttonLoader.style.display = "block";
+    registerButton.disabled = true;
+    
+    // Enviar formulario
+    registerForm.submit();
+}
+
+// Función para hacer scroll al primer error
+function scrollToFirstError() {
+    const firstError = document.querySelector('.error');
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError.focus();
+    }
+}
+
+// Función para mostrar mensajes
+function showMessage(message, type) {
+    const messageContainer = document.getElementById("messageContainer");
+    const messageContent = document.getElementById("messageContent");
+    
+    if (messageContainer && messageContent) {
+        messageContent.textContent = message;
+        messageContainer.className = `message-container ${type}`;
+        messageContainer.style.display = 'block';
+        
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+            messageContainer.style.display = 'none';
+        }, 5000);
+    }
+}
 
 async function loadPhoneLibrary() {
     return new Promise((resolve, reject) => {
@@ -136,33 +311,17 @@ function setupBasicPhoneValidation() {
         
         if (!phone) {
             showError(phoneInput, errorElement, 'El número de teléfono es obligatorio');
+            validationState.phoneNumber = false;
             return;
         }
         
         if (!/^[\d+\s\-()]{10,}$/.test(phone)) {
             showError(phoneInput, errorElement, 'Número de teléfono inválido');
+            validationState.phoneNumber = false;
             return;
         }
         
         hideError(phoneInput, errorElement);
+        validationState.phoneNumber = true;
     });
-}
-
-function showError(input, errorElement, message) {
-    if (input && errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-        errorElement.classList.add('show');
-        input.classList.add('error');
-        input.classList.remove('valid');
-    }
-}
-
-function hideError(input, errorElement) {
-    if (input && errorElement) {
-        errorElement.style.display = 'none';
-        errorElement.classList.remove('show');
-        input.classList.remove('error');
-        input.classList.add('valid');
-    }
 }

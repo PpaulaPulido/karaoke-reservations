@@ -65,15 +65,15 @@ export function validatePassword(password) {
 
     // Verificar qué requisitos faltan
     const missingRequirements = [];
-    
+
     if (!requirements.hasUpperCase) {
         missingRequirements.push('una mayúscula');
     }
-    
+
     if (!requirements.hasLowerCase) {
         missingRequirements.push('una minúscula');
     }
-    
+
     if (!requirements.hasSpecialChar) {
         missingRequirements.push('un carácter especial (@$!%*?&.#^-_)');
     }
@@ -81,8 +81,8 @@ export function validatePassword(password) {
     // Si faltan requisitos, retornar error
     if (missingRequirements.length > 0) {
         const errorMessage = `La contraseña debe contener ${missingRequirements.join(', ')}`;
-        return { 
-            isValid: false, 
+        return {
+            isValid: false,
             error: errorMessage,
             missingRequirements: missingRequirements
         };
@@ -120,7 +120,7 @@ export function calculatePasswordStrength(password) {
 
     // Longitud básica
     if (password.length >= 8) score += 1;
-    
+
     // Caracteres requeridos
     if (/[A-Z]/.test(password)) score += 1;
     if (/[a-z]/.test(password)) score += 1;
@@ -159,16 +159,16 @@ export function setupPasswordStrength() {
 
     if (!passwordInput || !strengthBar || !strengthText) return;
 
-    passwordInput.addEventListener('input', function() {
+    passwordInput.addEventListener('input', function () {
         const password = this.value;
-        
+
         // Validar en tiempo real
         const validationResult = validatePassword(password);
         const strength = calculatePasswordStrength(password);
-        
+
         // Actualizar barra de fuerza
         updatePasswordStrength(strength, strengthBar, strengthText);
-        
+
         // Mostrar/ocultar errores
         if (password.length === 0) {
             hideError(passwordInput, errorElement);
@@ -181,17 +181,17 @@ export function setupPasswordStrength() {
     });
 
     // Validar también al perder foco
-    passwordInput.addEventListener('blur', function() {
+    passwordInput.addEventListener('blur', function () {
         const password = this.value;
         const validationResult = validatePassword(password);
-        
+
         if (!validationResult.isValid && password.length > 0) {
             showError(passwordInput, errorElement, validationResult.error);
         }
     });
 
     // Limpiar error al enfocar
-    passwordInput.addEventListener('focus', function() {
+    passwordInput.addEventListener('focus', function () {
         hideError(passwordInput, errorElement);
     });
 }
@@ -203,7 +203,7 @@ export function updatePasswordStrength(score, bar, text) {
     // Reset classes
     bar.className = 'strength-fill';
     text.className = 'strength-text';
-    
+
     const strengthInfo = getStrengthInfo(score);
 
     if (score === 0) {
@@ -232,17 +232,17 @@ export function setupRealTimePasswordValidation() {
     if (!passwordInput || !confirmInput || !confirmErrorElement) return;
 
     // Validar confirmación mientras escribe
-    confirmInput.addEventListener('input', function() {
+    confirmInput.addEventListener('input', function () {
         const password = passwordInput.value;
         const confirmPassword = this.value;
-        
+
         if (confirmPassword.length === 0) {
             hideError(confirmInput, confirmErrorElement);
             return;
         }
 
         const validationResult = validatePasswordMatch(password, confirmPassword);
-        
+
         if (!validationResult.isValid) {
             showError(confirmInput, confirmErrorElement, validationResult.error);
         } else {
@@ -251,13 +251,13 @@ export function setupRealTimePasswordValidation() {
     });
 
     // Validar también al perder foco
-    confirmInput.addEventListener('blur', function() {
+    confirmInput.addEventListener('blur', function () {
         const password = passwordInput.value;
         const confirmPassword = this.value;
-        
+
         if (confirmPassword.length > 0) {
             const validationResult = validatePasswordMatch(password, confirmPassword);
-            
+
             if (!validationResult.isValid) {
                 showError(confirmInput, confirmErrorElement, validationResult.error);
             }
@@ -265,17 +265,17 @@ export function setupRealTimePasswordValidation() {
     });
 
     // Limpiar error al enfocar
-    confirmInput.addEventListener('focus', function() {
+    confirmInput.addEventListener('focus', function () {
         hideError(confirmInput, confirmErrorElement);
     });
 
     // También validar cuando cambie la contraseña principal
-    passwordInput.addEventListener('input', function() {
+    passwordInput.addEventListener('input', function () {
         const confirmPassword = confirmInput.value;
-        
+
         if (confirmPassword.length > 0) {
             const validationResult = validatePasswordMatch(this.value, confirmPassword);
-            
+
             if (!validationResult.isValid) {
                 showError(confirmInput, confirmErrorElement, validationResult.error);
             } else {
@@ -290,11 +290,16 @@ export function setupRealTimePasswordValidation() {
 // =============================================
 
 const VALID_DOMAINS = [
-    'gmail.com', 'outlook.com', 'hotmail.com', 'live.com', 'yahoo.com',
-    'icloud.com', 'aol.com', 'protonmail.com', 'zoho.com', 'yandex.com',
-    'mail.com', 'gmx.com', 'etb.net.co', 'une.net.co', 'epm.net.co',
-    'telecom.com.co', 'colombia.com', 'latinmail.com', 'hotmail.com.co',
-    'outlook.com.co', 'misena.edu.co', 'sena.edu.co', 'unal.edu.co'
+    'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 
+    'yahoo.com', 'yahoo.es', 'ymail.com', 'icloud.com', 'me.com', 'mac.com',
+    'itc.edu.co', 'protonmail.com', 'proton.me', 'zoho.com', 'yandex.com',
+    'yandex.ru', 'mail.com', 'gmx.com', 'gmx.us', 'gmx.de', 
+    'etb.net.co', 'une.net.co', 'epm.net.co', 'telecom.com.co', 
+    'colombia.com', 'latinmail.com', 'hotmail.com.co', 'outlook.com.co',
+    'misena.edu.co', 'sena.edu.co', 'unal.edu.co', 'edu.co',
+    'aol.com', 'aim.com', 'verizon.net', 'att.net', 'comcast.net',
+    'msn.com', 'passport.com', 'rocketmail.com', 'fastmail.com',
+    'hey.com', 'tutanota.com', 'disroot.org', 'riseup.net'
 ];
 
 const NONSENSE_WORDS = [
@@ -389,22 +394,23 @@ export function validateEmail(email) {
     // 13. Validar proporción vocal/consonante
     const vowelCount = (localPart.match(/[aeiou]/gi) || []).length;
     const consonantCount = (localPart.match(/[bcdfghjklmnpqrstvwxyz]/gi) || []).length;
-    
+
     if (vowelCount === 0 && consonantCount > 0) {
         return { isValid: false, error: 'El email debe contener al menos una vocal' };
     }
 
-    // 14. Validar dominio reconocido
-    if (!isValidDomain(domain)) {
-        return {
-            isValid: false,
-            error: 'Dominio de email no reconocido. Use proveedores válidos como Gmail, Yahoo, Outlook, etc.'
-        };
-    }
-
-    // 15. Validar estructura del dominio
+    // 14. Validar estructura del dominio
     if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain)) {
         return { isValid: false, error: 'Dominio de email no válido' };
+    }
+
+    // 15. Validar dominio reconocido (ESTA ES LA PARTE CLAVE)
+    if (!isValidDomain(domain)) {
+        const validDomainsList = VALID_DOMAINS.slice(0, 8).join(', ') + '...';
+        return {
+            isValid: false,
+            error: `Dominio no permitido. Use proveedores válidos como: ${validDomainsList}`
+        };
     }
 
     return { isValid: true, email: email };
@@ -433,15 +439,18 @@ function containsRepetitiveNumbers(localPart) {
  * Valida el dominio contra lista de dominios reconocidos
  */
 function isValidDomain(domain) {
-    // Verificar contra lista de dominios reconocidos
-    const isRecognizedDomain = VALID_DOMAINS.some(validDomain =>
-        domain === validDomain || domain.endsWith('.' + validDomain)
-    );
+    domain = domain.toLowerCase();
 
-    if (isRecognizedDomain) return true;
+    const isRecognizedDomain = VALID_DOMAINS.some(validDomain => {
+        const cleanValidDomain = validDomain.toLowerCase().trim();
+        return domain === cleanValidDomain || domain.endsWith('.' + cleanValidDomain);
+    });
 
-    // Si no está en la lista, verificar estructura básica pero mostrar advertencia
-    return /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain);
+    if (isRecognizedDomain) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -460,13 +469,13 @@ export function setupRealTimeEmailValidation() {
 
     let timeout = null;
 
-    emailInput.addEventListener('input', function() {
+    emailInput.addEventListener('input', function () {
         clearTimeout(timeout);
-        
+
         // Validación básica inmediata
         const email = this.value.trim();
         const basicValidation = validateEmail(email);
-        
+
         if (!basicValidation.isValid) {
             showError(emailInput, errorElement, basicValidation.error);
             return;
@@ -503,7 +512,7 @@ export function setupRealTimeEmailValidation() {
     });
 
     // Validar al perder foco
-    emailInput.addEventListener('blur', function() {
+    emailInput.addEventListener('blur', function () {
         const email = this.value.trim();
         if (email) {
             const validation = validateEmail(email);
@@ -514,7 +523,7 @@ export function setupRealTimeEmailValidation() {
     });
 
     // Limpiar error al enfocar
-    emailInput.addEventListener('focus', function() {
+    emailInput.addEventListener('focus', function () {
         hideError(emailInput, errorElement);
     });
 }
@@ -551,39 +560,39 @@ function validateEmailRealTime(input, errorElement) {
 export function setupRealTimePhoneValidation() {
     const phoneInput = document.getElementById('phoneNumber');
     const errorElement = document.getElementById('phoneError');
-    
+
     if (!phoneInput || !errorElement) {
         console.error('No se encontró el campo phoneNumber o phoneError');
         return null;
     }
-    
+
     console.log('✅ Configurando validación de teléfono en tiempo real');
-    
+
     // Inicializar intl-tel-input
     const iti = initPhoneInput(phoneInput);
-    
+
     if (!iti) {
         console.error('Error al inicializar intl-tel-input');
         return null;
     }
-    
+
     let timeout;
-    phoneInput.addEventListener('input', function() {
+    phoneInput.addEventListener('input', function () {
         clearTimeout(timeout);
         timeout = setTimeout(() => {
             console.log('Validando teléfono:', this.value);
             validatePhoneRealTime(this, errorElement, iti);
         }, 500);
     });
-    
-    phoneInput.addEventListener('blur', function() {
+
+    phoneInput.addEventListener('blur', function () {
         validatePhoneRealTime(this, errorElement, iti);
     });
-    
-    phoneInput.addEventListener('focus', function() {
+
+    phoneInput.addEventListener('focus', function () {
         hideError(this, errorElement);
     });
-    
+
     return iti;
 }
 
@@ -613,6 +622,15 @@ export function initPhoneInput(phoneInput) {
     // Borrar placeholder vacío
     phoneInput.placeholder = "";
 
+    setTimeout(() => {
+        const dropdowns = document.querySelectorAll('.iti__country-list, .iti--container');
+        dropdowns.forEach(dropdown => {
+            if (dropdown) {
+                dropdown.style.zIndex = '10001';
+            }
+        });
+    }, 500);
+
     return iti;
 }
 
@@ -621,27 +639,27 @@ export function initPhoneInput(phoneInput) {
  */
 function validatePhoneRealTime(input, errorElement, iti) {
     const phone = input.value.trim();
-    
+
     if (!phone) {
         showError(input, errorElement, 'El número de teléfono es obligatorio');
         return false;
     }
 
     const result = validatePhoneNumber(input, iti);
-    
+
     if (!result.isValid) {
         showError(input, errorElement, result.error);
         return false;
     }
-    
+
     // Si es válido, ocultar error y formatear automáticamente
     hideError(input, errorElement);
-    
+
     // Formatear número automáticamente si es válido
     if (result.international && result.international !== phone) {
         input.value = result.international;
     }
-    
+
     return true;
 }
 
@@ -653,7 +671,7 @@ export function validatePhoneNumber(phoneInput, iti = null) {
     if (!iti) {
         iti = window.intlTelInputGlobals.getInstance(phoneInput);
     }
-    
+
     if (!iti) {
         return { isValid: false, error: "Error en la validación del teléfono" };
     }
