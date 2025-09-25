@@ -98,9 +98,4 @@ public class RegistrationController {
         return "login";
     }
 
-
-    @GetMapping("/dashboard")
-    public String showDashboard(Model model) {
-        return "dashboard";
-    }
 }

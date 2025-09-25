@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,50 +8,293 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
+
 <body>
     <div class="dashboard-container">
-        <header class="dashboard-header">
-            <div class="header-content">
-                <a href="/" class="logo">
+        <!-- Barra lateral de navegación -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
                     <i class="fas fa-music"></i>
                     <span>Karaoke Vibes</span>
+                </div>
+            </div>
+
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h3 th:text="${user.fullName}">Usuario</h3>
+                </div>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li><a href="#inicio"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="#experiencia"><i class="fas fa-star"></i> Experiencia</a></li>
+                <li><a href="#recomendaciones"><i class="fas fa-lightbulb"></i> Recomendaciones</a></li>
+                <li><a href="/reservations"><i class="fas fa-calendar-plus"></i> Reservar Sala</a></li>
+                <li><a href="/my-reservations"><i class="fas fa-history"></i> Mis Reservas</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
                 </a>
-                <div class="user-menu">
-                    <span>Bienvenido, <span th:text="${user.fullName}">Usuario</span></span>
-                    <a href="/logout" class="logout-btn">Cerrar Sesión</a>
-                </div>
             </div>
-        </header>
+        </nav>
 
-        <main class="dashboard-main">
-            <div class="welcome-section">
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <!-- Sección de bienvenida -->
+            <section class="welcome-section">
                 <h1>¡Bienvenido al Dashboard!</h1>
-                <p>Gestiona tu experiencia de karaoke</p>
-            </div>
+                <p th:text="'Hola ' + ${user.fullName} + ', estamos contentos de verte de nuevo.'"></p>
+            </section>
 
-            <div class="dashboard-cards">
-                <div class="card">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h3>Mis Reservas</h3>
-                    <p>Gestiona tus reservas de karaoke</p>
-                    <a href="/reservations" class="card-link">Ver reservas</a>
+            <!-- Sección Hero -->
+            <section id="inicio" class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Vive la experiencia del <span class="highlight">mejor karaoke</span> de la
+                        ciudad
+                    </h1>
+                    <p class="hero-text">Ambiente nocturno, luces vibrantes y salas premium listas para que cantes tus
+                        hits
+                        favoritos con tus amigos.</p>
+                    <a href="#reserva" class="btn-hero">Reservar ahora</a>
+                </div>
+                <div class="floating-music-notes">
+                    <div class="music-note">♩</div>
+                    <div class="music-note">♪</div>
+                    <div class="music-note">♫</div>
+                    <div class="music-note">♬</div>
+                    <div class="music-note">🎵</div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1560297035-0ed84c4175f6?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                        alt="Karaoke en vivo">
+                </div>
+            </section>
+
+            <!-- Sección Recomendaciones -->
+            <section id="recomendaciones" class="recommendations">
+                <h2 class="section-title">Recomendaciones</h2>
+                <div class="cards-grid">
+                    <div class="recommendation-card">
+                        <div class="card-image-container">
+                            <img src="https://images.unsplash.com/photo-1741594412133-ffd6530482ad?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Grupo de amigos" class="card-image">
+                            <div class="card-overlay">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Tamaño del grupo</h5>
+                            <p>Elige salas según el mínimo y máximo de personas para tu comodidad.</p>
+                            <div class="card-footer">
+                                <span class="card-tip">Consejo útil</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-card">
+                        <div class="card-image-container">
+                            <img src="https://images.unsplash.com/photo-1635865141830-8c96b24e6499?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Llegar temprano" class="card-image">
+                            <div class="card-overlay">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Llega 10 minutos antes</h5>
+                            <p>Asegura tu entrada y prepárate para empezar a tiempo.</p>
+                            <div class="card-footer">
+                                <span class="card-tip">Puntualidad</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-card">
+                        <div class="card-image-container">
+                            <img src="https://images.unsplash.com/photo-1644447393594-86ac32d94a09?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Cocktail bar" class="card-image">
+                            <div class="card-overlay">
+                                <i class="fas fa-cocktail"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Consumo sugerido</h5>
+                            <p>Disfruta de nuestra barra con consumo mínimo recomendado.</p>
+                            <div class="card-footer">
+                                <span class="card-tip">Gastronomía</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-card">
+                        <div class="card-image-container">
+                            <img src="https://images.unsplash.com/photo-1635520356736-90cb46f73413?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Equipo de sonido" class="card-image">
+                            <div class="card-overlay">
+                                <i class="fas fa-volume-up"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Cuida el equipo</h5>
+                            <p>Respeta micrófonos y sistema de sonido para una mejor experiencia.</p>
+                            <div class="card-footer">
+                                <span class="card-tip">Responsabilidad</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-card">
+                        <div class="card-image-container">
+                            <img src="https://images.unsplash.com/photo-1738156684532-b79bfb589344?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Diversión asegurada" class="card-image">
+                            <div class="card-overlay">
+                                <i class="fas fa-laugh-beam"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Diversión asegurada</h5>
+                            <p>Canta, ríe y comparte momentos inolvidables con tu grupo.</p>
+                            <div class="card-footer">
+                                <span class="card-tip">Diversión</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-card">
+                        <div class="card-image-container">
+                            <img src="https://images.unsplash.com/photo-1708107243254-01a7a1463cf3?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Reserva anticipada" class="card-image">
+                            <div class="card-overlay">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>Reserva anticipada</h5>
+                            <p>Evita filas asegurando tu sala con tiempo.</p>
+                            <div class="card-footer">
+                                <span class="card-tip">Planificación</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección Experiencia -->
+            <section id="experiencia" class="experience">
+                <div class="experience-intro">
+                    <h2 class="section-title">Lo chévere y creativo de nuestra noche</h2>
+                    <p>Más que cantar: una vibra única con luces, arte neón y una barra que enciende la fiesta.
+                        Disfruta de snacks, platos para compartir y cocteles de autor inspirados en tus canciones
+                        favoritas.</p>
                 </div>
 
-                <div class="card">
-                    <i class="fas fa-user-edit"></i>
-                    <h3>Mi Perfil</h3>
-                    <p>Actualiza tu información personal</p>
-                    <a href="/profile" class="card-link">Editar perfil</a>
-                </div>
+                <div class="experience-container">
+                    <div class="experience-background">
+                        <div class="floating-neon"></div>
+                        <div class="floating-neon"></div>
+                        <div class="floating-neon"></div>
+                    </div>
 
-                <div class="card">
-                    <i class="fas fa-history"></i>
-                    <h3>Historial</h3>
-                    <p>Revisa tu historial de canciones</p>
-                    <a href="/history" class="card-link">Ver historial</a>
+                    <div class="experience-content">
+                        <div class="experience-texts">
+                            <div class="tags-container">
+                                <div class="tags-group">
+                                    <div class="tag-item">
+                                        <i class="fas fa-palette"></i>
+                                        <span>Arte neón</span>
+                                    </div>
+                                    <div class="tag-item">
+                                        <i class="fas fa-music"></i>
+                                        <span>Temáticas pop</span>
+                                    </div>
+                                    <div class="tag-item">
+                                        <i class="fas fa-list"></i>
+                                        <span>Playlist curada</span>
+                                    </div>
+                                </div>
+
+                                <div class="tags-group">
+                                    <div class="tag-item">
+                                        <i class="fas fa-cocktail"></i>
+                                        <span>Cócteles de autor</span>
+                                    </div>
+                                    <div class="tag-item">
+                                        <i class="fas fa-glass-whiskey"></i>
+                                        <span>Bebidas sin alcohol</span>
+                                    </div>
+                                    <div class="tag-item">
+                                        <i class="fas fa-utensils"></i>
+                                        <span>Snacks y finger food</span>
+                                    </div>
+                                </div>
+
+                                <div class="tags-group">
+                                    <div class="tag-item">
+                                        <i class="fas fa-pizza-slice"></i>
+                                        <span>Pizzas para compartir</span>
+                                    </div>
+                                    <div class="tag-item">
+                                        <i class="fas fa-ice-cream"></i>
+                                        <span>Postres creativos</span>
+                                    </div>
+                                    <div class="tag-item">
+                                        <i class="fas fa-gift"></i>
+                                        <span>Packs de celebración</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="cta-button">
+                                <span>Descubre la experiencia</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="experience-image">
+                            <div class="image-container">
+                                <img src="https://images.unsplash.com/photo-1572116469696-31de0f17cc34?q=80&w=800"
+                                    alt="Neón cocktails" class="main-image">
+                                <div class="image-overlay">
+                                    <div class="play-button">
+                                        <i class="fas fa-play"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="floating-elements">
+                                <div class="floating-element cocktail"></div>
+                                <div class="floating-element music"></div>
+                                <div class="floating-element star"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer-content">
+                    <div class="footer-logo">
+                        <h3>Karaoke Vibes</h3>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>© 2025 Karaoke Vibes – Todos los derechos reservados</p>
+                    <div class="footer-badges">
+                        <span>🎤 Música sin límites</span>
+                        <span>✨ Experiencias únicas</span>
+                    </div>
+                </div>
+            </footer>
         </main>
     </div>
+
+    <script type="module" src="/js/dashboard.js"></script>
 </body>
+
 </html>

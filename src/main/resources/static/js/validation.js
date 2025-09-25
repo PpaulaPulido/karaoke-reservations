@@ -846,7 +846,6 @@ function hasIncoherentSequence(word) {
         }
     }
 
-    // Detectar muchas consonantes seguidas (más de 3)
     if (/[bcdfghjklmnpqrstvwxyzñ]{4,}/i.test(word)) {
         return true;
     }
