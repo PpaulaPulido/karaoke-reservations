@@ -42,4 +42,30 @@ public class DashboardController {
         
         return "dashboard";
     }
+
+    @GetMapping("/reservations")
+    public String showReservations(Model model) {
+        try {
+            // Obtener el usuario autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userService.findByEmail(email);
+            
+            if (user != null) {
+                model.addAttribute("user", user);
+                log.info("Usuario autenticado: {}", user.getEmail());
+            } else {
+                log.error("Usuario no encontrado para email: {}", email);
+                model.addAttribute("error", "Usuario no encontrado");
+                return "redirect:/login?error=user_not_found";
+            }
+            
+        } catch (Exception e) {
+            log.error("Error al cargar el dashboard: {}", e.getMessage());
+            model.addAttribute("error", "Error al cargar el dashboard");
+            return "redirect:/login?error=dashboard_error";
+        }
+        
+        return "reservations";
+    }
 }

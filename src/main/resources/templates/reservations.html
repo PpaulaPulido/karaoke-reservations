@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Reserva - Karaoke Vibes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/new-reservation.css">
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span>Karaoke Vibes</span>
+            </div>
+        </div>
+
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <h3 th:text="${user.fullName}">Usuario</h3>
+                <span>Miembro Premium</span>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/reservations"><i class="fas fa-calendar-check"></i> Mis Reservas</a></li>
+            <li><a href="/new-reservation" class="active"><i class="fas fa-calendar-plus"></i> Nueva Reserva</a></li>
+            <li><a href="/profile"><i class="fas fa-user-edit"></i> Mi Perfil</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Header -->
+            <header class="page-header">
+                <h1><i class="fas fa-calendar-plus"></i> Nueva Reserva</h1>
+                <p>Completa la información para crear tu reserva de karaoke</p>
+            </header>
+
+            <!-- Reservation Form -->
+            <form id="reservation-form" class="reservation-form">
+                <!-- Información Básica -->
+                <section class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información Básica
+                    </h2>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="reservationDate">Fecha de Reserva *</label>
+                            <input type="date" id="reservationDate" name="reservationDate" required min=""
+                                class="form-input">
+                            <span class="error-message" id="date-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="startTime">Hora de Inicio *</label>
+                            <input type="time" id="startTime" name="startTime" required class="form-input">
+                            <span class="error-message" id="start-time-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endTime">Hora de Fin *</label>
+                            <input type="time" id="endTime" name="endTime" required class="form-input">
+                            <span class="error-message" id="end-time-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numberOfPeople">Número de Personas *</label>
+                            <input type="number" id="numberOfPeople" name="numberOfPeople" max="15" required
+                                class="form-input">
+                            <span class="error-message" id="people-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="celebrationType">Tipo de Celebración</label>
+                            <select id="celebrationType" name="celebrationType" class="form-input">
+                                <option value="">Selecciona un tipo (opcional)</option>
+                                <option value="Casual">Casual</option>
+                                <option value="Cumpleaños">Cumpleaños</option>
+                                <option value="Fiesta de Soltería">Fiesta de Soltería</option>
+                                <option value="Reunión Familiar">Reunión Familiar</option>
+                                <option value="Celebración de Empresa">Celebración de Empresa</option>
+                                <option value="Despedida">Despedida</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Selección de Sala -->
+                <section class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-door-open"></i>
+                        Selección de Sala
+                    </h2>
+
+                    <div class="form-group full-width">
+                        <label for="room">Sala *</label>
+                        <select id="room" name="room" required class="form-input">
+                            <option value="">Selecciona una sala</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                        <span class="error-message" id="room-error"></span>
+                    </div>
+
+                    <div class="room-info" id="room-info" style="display: none;">
+                        <div class="room-details">
+                            <h4>Información de la Sala</h4>
+                            <div class="room-detail-item">
+                                <span class="detail-label">Descripción:</span>
+                                <span id="room-description"></span>
+                            </div>
+                            <div class="room-detail-item">
+                                <span class="detail-label">Capacidad:</span>
+                                <span id="room-capacity"></span>
+                            </div>
+                            <div class="room-detail-item">
+                                <span class="detail-label">Disponibilidad:</span>
+                                <span id="room-availability"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Servicios Adicionales -->
+                <section class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-star"></i>
+                        Servicios Adicionales (Opcionales)
+                    </h2>
+                    <p class="section-subtitle">Selecciona los extras que deseas incluir en tu reserva</p>
+
+                    <div class="extras-container">
+                        <div class="extras-filter">
+                            <label for="extra-type-filter">Filtrar por tipo:</label>
+                            <select id="extra-type-filter" class="filter-select form-input">
+                                <option value="all">Todos los tipos</option>
+                                <option value="Celebración">Celebración</option>
+                                <option value="Comida">Comida</option>
+                                <option value="Bebida">Bebida</option>
+                                <option value="Entretenimiento">Entretenimiento</option>
+                                <option value="Decoración">Decoración</option>
+                            </select>
+                        </div>
+
+                        <div class="extras-grid" id="extras-grid">
+                            <!-- Los extras se cargarán dinámicamente -->
+                        </div>
+                    </div>
+
+                    <div class="selected-extras" id="selected-extras" style="display: none;">
+                        <h4>Extras Seleccionados:</h4>
+                        <div class="selected-extras-list" id="selected-extras-list">
+                            <!-- Los extras seleccionados aparecerán aquí -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resumen y Confirmación -->
+                <section class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-clipboard-check"></i>
+                        Resumen de la Reserva
+                    </h2>
+
+                    <div class="summary-card" id="reservation-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Fecha:</span>
+                            <span id="summary-date">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Horario:</span>
+                            <span id="summary-time">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Personas:</span>
+                            <span id="summary-people">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Sala:</span>
+                            <span id="summary-room">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Extras:</span>
+                            <span id="summary-extras">Ninguno</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span class="summary-label">Total Estimado:</span>
+                            <span id="summary-total">$0</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Botones de Acción -->
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="location.href='/reservations'">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary" id="submit-btn">
+                        <i class="fas fa-calendar-check"></i> Confirmar Reserva
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar Reserva</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>¿Estás seguro de crear esta reserva?</h3>
+                <p>Revisa que toda la información sea correcta antes de confirmar.</p>
+                <div class="confirmation-details" id="confirmation-details">
+                    <!-- Los detalles de confirmación se cargarán aquí -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-confirmation">Volver a Editar</button>
+                <button class="btn-confirm" id="confirm-reservation">Sí, Confirmar Reserva</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/reservationValidation.js"></script>
+    <script type="module" src="/js/new-reservation.js"></script>
+</body>
+
+</html>
