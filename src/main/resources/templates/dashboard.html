@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Karaoke Vibes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <i class="fas fa-music"></i>
+                    <span>Karaoke Vibes</span>
+                </a>
+                <div class="user-menu">
+                    <span>Bienvenido, <span th:text="${user.fullName}">Usuario</span></span>
+                    <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <div class="welcome-section">
+                <h1>¡Bienvenido al Dashboard!</h1>
+                <p>Gestiona tu experiencia de karaoke</p>
+            </div>
+
+            <div class="dashboard-cards">
+                <div class="card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Mis Reservas</h3>
+                    <p>Gestiona tus reservas de karaoke</p>
+                    <a href="/reservations" class="card-link">Ver reservas</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-user-edit"></i>
+                    <h3>Mi Perfil</h3>
+                    <p>Actualiza tu información personal</p>
+                    <a href="/profile" class="card-link">Editar perfil</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-history"></i>
+                    <h3>Historial</h3>
+                    <p>Revisa tu historial de canciones</p>
+                    <a href="/history" class="card-link">Ver historial</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

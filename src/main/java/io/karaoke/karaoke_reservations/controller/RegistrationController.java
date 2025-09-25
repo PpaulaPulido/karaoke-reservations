@@ -3,9 +3,12 @@ package io.karaoke.karaoke_reservations.controller;
 import io.karaoke.karaoke_reservations.domain.User;
 import io.karaoke.karaoke_reservations.dto.UserRegistrationDTO;
 import io.karaoke.karaoke_reservations.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class RegistrationController {
 
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
@@ -78,7 +82,25 @@ public class RegistrationController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String showLoginForm(Model model, HttpServletRequest request) {
+        if (!model.containsAttribute("user")) {
+            model.addAttribute("user", new UserRegistrationDTO());
+        }
+
+        if (request.getParameter("error") != null) {
+            String errorMessage = "Credenciales inválidas. Por favor, intente nuevamente.";
+            model.addAttribute("loginError", errorMessage);
+        }
+
+        if (request.getParameter("logout") != null) {
+            model.addAttribute("logoutMessage", "Has cerrado sesión exitosamente.");
+        }
         return "login";
+    }
+
+
+    @GetMapping("/dashboard")
+    public String showDashboard(Model model) {
+        return "dashboard";
     }
 }
