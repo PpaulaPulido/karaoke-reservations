@@ -25,13 +25,16 @@ public class Room {
     private String name;
 
     @Column(nullable = false)
-    private Integer maxCapacity; // Máximo de personas (2-15)
+    private Integer minCapacity; 
 
     @Column(nullable = false)
-    private Boolean isAvailable = true; // Disponibilidad de la sala
+    private Integer maxCapacity; 
 
     @Column(nullable = false)
-    private Double pricePerHour; // Precio por hora
+    private Boolean isAvailable = true; 
+
+    @Column(nullable = false)
+    private Double pricePerHour; 
 
     @OneToMany(mappedBy = "room")
     private Set<Reservation> reservations = new HashSet<>();
@@ -59,9 +62,10 @@ public class Room {
     }
 
     // Constructor con parámetros básicos
-    public Room(String name, Integer maxCapacity, Double pricePerHour) {
+    public Room(String name, Integer minCapacity, Integer maxCapacity, Double pricePerHour) {
         this();
         this.name = name;
+        this.minCapacity = minCapacity;
         this.maxCapacity = maxCapacity;
         this.pricePerHour = pricePerHour;
     }
