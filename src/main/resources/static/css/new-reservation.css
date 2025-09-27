@@ -1,3 +1,4 @@
+
 :root {
     --primary-color: #20B2AA;
     --accent-color: #6A5ACD;
@@ -320,18 +321,7 @@ body {
     box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
 }
 
-.error-message {
-    color: var(--error-color);
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-    display: none;
-}
 
-.error-message.show {
-    display: block;
-}
-
-/* Room Info */
 .room-info {
     background: rgba(255, 255, 255, 0.05);
     border-radius: var(--border-radius);
@@ -356,7 +346,8 @@ body {
     color: #e0e0e0;
 }
 
-/* Extras Section */
+/* ===== ESTILOS PARA SERVICIOS ADICIONALES ===== */
+
 .extras-container {
     margin-top: 1.5rem;
 }
@@ -368,15 +359,26 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.extras-filter label {
+    color: var(--text-color);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.filter-select {
+    min-width: 200px;
+}
+
 .extras-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
 }
 
 .extra-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--border-radius);
     padding: 1.5rem;
     cursor: pointer;
@@ -402,37 +404,41 @@ body {
 
 .extra-card:hover {
     border-color: var(--primary-color);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .extra-card.selected {
     border-color: var(--accent-color);
-    background: rgba(106, 90, 205, 0.1);
+    background: rgba(106, 90, 205, 0.15);
+    box-shadow: 0 0 20px rgba(106, 90, 205, 0.3);
 }
 
 .extra-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 1rem;
 }
 
 .extra-name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--primary-color);
+    font-size: 1.1rem;
 }
 
 .extra-type {
-    background: rgba(106, 90, 205, 0.2);
+    background: rgba(106, 90, 205, 0.3);
     color: var(--accent-color);
-    padding: 0.3rem 0.7rem;
-    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
     font-size: 0.8rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .extra-price {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--accent-color);
     margin: 0.5rem 0;
@@ -440,8 +446,8 @@ body {
 
 .extra-description {
     color: #e0e0e0;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .selected-extras {
@@ -488,10 +494,55 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all var(--transition-speed);
 }
 
 .remove-extra:hover {
     background: rgba(220, 53, 69, 0.2);
+    transform: scale(1.1);
+}
+
+/* Responsive para extras */
+@media (max-width: 768px) {
+    .extras-filter {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+    }
+    
+    .extras-filter label {
+        margin-bottom: 0.5rem;
+    }
+    
+    .extras-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .extra-card {
+        padding: 1.2rem;
+    }
+    
+    .selected-extras-list {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .selected-extra-item {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .extra-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .extra-type {
+        align-self: flex-start;
+    }
 }
 
 /* Summary Section */
@@ -732,9 +783,6 @@ body {
     .form-grid {
         grid-template-columns: 1fr;
     }
-    .extras-grid {
-        grid-template-columns: 1fr;
-    }
     .form-actions {
         flex-direction: column;
     }
@@ -762,40 +810,6 @@ body {
     }
 }
 
-.select-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.select-wrapper::after {
-    content: '';
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2320B2AA' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    pointer-events: none;
-    z-index: 2;
-}
-
-/* Forzar estilos para el dropdown del select */
-.form-input select {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: var(--border-radius) !important;
-    padding: 1rem !important;
-    color: var(--text-color) !important;
-    font-size: 1rem !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    width: 100% !important;
-    cursor: pointer !important;
-}
-
 .form-input[list] {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -805,83 +819,209 @@ body {
     font-size: 1rem;
 }
 
-.form-input select:focus {
-    border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 2px rgba(32, 178, 170, 0.2) !important;
-    outline: none !important;
+/* mensajes de error */
+
+
+
+
+/* ===== NUEVOS ESTILOS - AGREGAR AL FINAL DEL ARCHIVO ===== */
+
+/* Información de negocio */
+.business-info-section {
+    margin-bottom: 2rem;
 }
 
+.business-info-card {
+    background: rgba(32, 178, 170, 0.1);
+    border: 1px solid rgba(32, 178, 170, 0.3);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.business-info-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: #e0e0e0;
+}
+
+.info-item i {
+    color: var(--primary-color);
+    width: 20px;
+}
+
+/* Mensajes de restricciones */
+.constraint-messages {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.constraint-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.constraint-alert i {
+    color: var(--error-color);
+    font-size: 1.2rem;
+    margin-top: 0.2rem;
+}
+
+.constraint-content strong {
+    color: var(--error-color);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.constraint-content ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.constraint-content li {
+    color: #e0e0e0;
+    margin-bottom: 0.3rem;
+}
+
+/* Corrección para mensajes de error */
+.error-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Estados de validación mejorados */
+.form-input.valid {
+    border-color: var(--success-color);
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+
+/* Mejoras responsive para nuevas secciones */
+@media (max-width: 768px) {
+    .business-info-card {
+        padding: 1rem;
+    }
+    
+    .info-items {
+        gap: 0.5rem;
+    }
+    
+    .info-item {
+        font-size: 0.9rem;
+    }
+    
+    .constraint-messages {
+        padding: 0.8rem;
+    }
+    
+    .constraint-alert {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* ===== SOLUCIÓN DEFINITIVA PARA SELECTS ===== */
+
+/* Reset completo para el select */
+.form-input select {
+    background: #1a1a2e !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    width: 100% !important;
+    cursor: pointer !important;
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Flecha del select visible */
+.form-input select::-ms-expand {
+    display: block !important;
+    color: #20B2AA !important;
+}
+
+/* Opciones con buen contraste */
+.form-input select option {
+    background: #1a1a2e !important;
+    color: #ffffff !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+    border: none !important;
+}
+
+/* Focus state */
+.form-input select:focus {
+    outline: 2px solid #20B2AA !important;
+    outline-offset: 2px !important;
+    border-color: #20B2AA !important;
+}
+
+/* Estado deshabilitado */
+.form-input select:disabled {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Contenedor del select */
+.form-group {
+    position: relative;
+}
+
+/* Eliminar cualquier pseudo-elemento que pueda estar ocultando el contenido */
+.select-wrapper::after,
+.form-input::after,
+.form-group::after {
+    display: none !important;
+}
+
+/* Estilos específicos para WebKit (Chrome, Safari) */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
     .form-input select {
         background-color: #1a1a2e !important;
-        color: white !important;
+        color: #ffffff !important;
+        padding-right: 40px !important;
+        background-image: none !important;
     }
     
     .form-input select option {
         background-color: #1a1a2e !important;
-        color: white !important;
+        color: #ffffff !important;
     }
-}
-
-.custom-select {
-    position: relative;
-    width: 100%;
-}
-
-.custom-select-trigger {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    color: var(--text-color);
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.custom-select-options {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #1a1a2e;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--border-radius);
-    margin-top: 0.5rem;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    display: none;
-}
-
-.custom-select-option {
-    padding: 1rem;
-    color: var(--text-color);
-    cursor: pointer;
-    transition: background-color var(--transition-speed);
-}
-
-.custom-select-option:hover {
-    background: rgba(32, 178, 170, 0.2);
-}
-
-.custom-select-option.selected {
-    background: rgba(106, 90, 205, 0.3);
-}
-
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-    select::-webkit-scrollbar {
+    
+    /* Flecha nativa de WebKit */
+    .form-input select::-webkit-scrollbar {
         width: 8px;
     }
     
-    select::-webkit-scrollbar-track {
+    .form-input select::-webkit-scrollbar-track {
         background: #1a1a2e;
     }
     
-    select::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
+    .form-input select::-webkit-scrollbar-thumb {
+        background: #20B2AA;
         border-radius: 4px;
     }
 }
@@ -890,37 +1030,33 @@ body {
 @-moz-document url-prefix() {
     .form-input select {
         background-color: #1a1a2e;
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        padding-right: 40px;
     }
     
     .form-input select option {
         background-color: #1a1a2e;
-        color: white;
+        color: #ffffff;
     }
 }
 
-/* IE/Edge */
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+/* Responsive para selects */
+@media (max-width: 768px) {
+    .extras-filter {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+    }
+    
+    .extras-filter label {
+        margin-bottom: 0.5rem;
+    }
+    
+    .extras-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .form-input select {
-        background: #1a1a2e;
-        color: white;
+        font-size: 16px !important; /* Evita zoom en iOS */
     }
-}
-/* mensajes de error */
-.error-message {
-    display: block;
-    color: var(--error-color);
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-    min-height: 1.2rem;
-    font-weight: 600;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all var(--transition-speed);
-}
-
-.error-message:not(:empty) {
-    opacity: 1;
-    transform: translateY(0);
 }
