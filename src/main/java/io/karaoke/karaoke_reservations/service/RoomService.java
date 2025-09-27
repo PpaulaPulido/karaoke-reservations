@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +17,7 @@ import java.util.Optional;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final ReservationService reservationService;
 
     // Obtener todas las salas
     public List<Room> findAllRooms() {
@@ -120,11 +123,23 @@ public class RoomService {
                 .orElse(false);
     }
 
-    // Validar si una sala está disponible
+    // Validar si una sala está disponible (solo estado básico)
     public boolean isRoomAvailable(Integer roomId) {
         return roomRepository.findById(roomId)
                 .map(Room::getIsAvailable)
                 .orElse(false);
+    }
+
+    // NUEVO: Validar disponibilidad completa con fecha y hora
+    public boolean isRoomAvailable(Integer roomId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        // Primero verificar si la sala existe y está disponible básicamente
+        Optional<Room> roomOpt = roomRepository.findById(roomId);
+        if (roomOpt.isEmpty() || !roomOpt.get().getIsAvailable()) {
+            return false;
+        }
+
+        // Luego verificar si hay reservas conflictivas
+        return reservationService.isRoomAvailable(roomId, date, startTime, endTime);
     }
 
     // Calcular precio para una reserva

@@ -25,7 +25,7 @@
             </div>
             <div class="user-details">
                 <h3 th:text="${user.fullName}">Usuario</h3>
-                <span>Miembro Premium</span>
+                <span th:text="${user.isAdmin ? 'Administrador' : 'Miembro Premium'}">Miembro Premium</span>
             </div>
         </div>
 
@@ -67,8 +67,12 @@
                             <span>Horario: 6:00 PM - 2:00 AM</span>
                         </div>
                         <div class="info-item">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>Reserva mínima con 4 horas de anticipación</span>
+                            <i class="fas fa-users"></i>
+                            <span>Mínimo 2 personas, máximo 15 personas</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Duración: 30 min mínimo, 2 horas máximo</span>
                         </div>
                     </div>
                 </div>
@@ -79,6 +83,8 @@
 
             <!-- Reservation Form -->
             <form id="reservation-form" class="reservation-form" method="post" action="/reservations/create">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+
                 <!-- Información Básica -->
                 <section class="form-section">
                     <h2 class="section-title">
@@ -95,73 +101,74 @@
 
                         <div class="form-group">
                             <label for="startTime">Hora de Inicio *</label>
-                            <input type="time" id="startTime" name="startTime" class="form-input" required>
-                            <span class="error-message" id="start-time-error"></span>
+                            <input type="time" id="startTime" name="startTime" class="form-input" min="18:00"
+                                max="02:00" required>
+                            <span class="error-message" id="startTime-error"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="endTime">Hora de Fin *</label>
-                            <input type="time" id="endTime" name="endTime" class="form-input" required>
-                            <span class="error-message" id="end-time-error"></span>
+                            <input type="time" id="endTime" name="endTime" class="form-input" min="18:30" max="04:00"
+                                required>
+                            <span class="error-message" id="endTime-error"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="numberOfPeople">Número de Personas *</label>
-                            <input type="number" id="numberOfPeople" name="numberOfPeople" class="form-input" min="2" max="15" required>
+                            <input type="number" id="numberOfPeople" name="numberOfPeople" class="form-input" min="2"
+                                max="15" required>
                             <span class="error-message" id="numberOfPeople-error"></span>
                         </div>
 
-                        <div class="form-group full-width">
-                            <label for="room">Sala *</label>
-                            <select id="room" name="room" class="form-input" required>
-                                <option value="">Selecciona una sala</option>
-                            </select>
-                            <span class="error-message" id="room-error"></span>
-                        </div>
-
-                        <div id="room-info" style="display:none">
-                            <div class="room-details">
-                                <h4>Información de la Sala</h4>
-                                <div class="room-detail-item">
-                                    <span class="detail-label">Descripción:</span>
-                                    <span id="room-description"></span>
-                                </div>
-                                <div class="room-detail-item">
-                                    <span class="detail-label">Capacidad:</span>
-                                    <span id="room-capacity"></span>
-                                </div>
-                                <div class="room-detail-item">
-                                    <span class="detail-label">Disponibilidad:</span>
-                                    <span id="room-availability"></span>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label for="durationMinutes">Duración Calculada *</label>
+                            <input type="text" id="durationMinutes" name="durationMinutes" class="form-input" readonly
+                                placeholder="Se calculará automáticamente">
+                            <span class="help-text">La duración se calcula automáticamente basada en el horario
+                                seleccionado</span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Extras Section -->
+                <!-- Selección de Sala -->
+                <section class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-door-open"></i>
+                        Selección de Sala
+                    </h2>
+                    <p class="section-subtitle">Elige la sala que mejor se adapte a tu grupo</p>
+
+                    <div id="rooms-container" class="rooms-container">
+                        <!-- Las salas se cargarán dinámicamente aquí -->
+                        <div class="loading-rooms">Cargando salas disponibles...</div>
+                    </div>
+                    <input type="hidden" id="selectedRoomId" name="roomId" required>
+                    <span class="error-message" id="room-error"></span>
+                </section>
+
+                <!-- Servicios Adicionales -->
                 <section class="form-section">
                     <h2 class="section-title">
                         <i class="fas fa-gift"></i>
                         Servicios Adicionales
                     </h2>
                     <p class="section-subtitle">Selecciona los extras para tu reserva (opcional).</p>
-                    
+
                     <div class="extras-container">
                         <div class="extras-filter">
                             <label for="extra-type-filter">Filtrar por tipo:</label>
                             <select id="extra-type-filter" class="filter-select form-input">
                                 <option value="all">Todos los tipos</option>
-                                <option value="Celebración">Celebración</option>
-                                <option value="Comida">Comida</option>
-                                <option value="Bebida">Bebida</option>
-                                <option value="Entretenimiento">Entretenimiento</option>
-                                <option value="Decoración">Decoración</option>
+                                <option value="comida">Comida</option>
+                                <option value="bebida">Bebida</option>
+                                <option value="decoracion">Decoración</option>
+                                <option value="entretenimiento">Entretenimiento</option>
                             </select>
                         </div>
 
                         <div id="extras-grid" class="extras-grid">
-                            <!-- Las tarjetas de extras se generarán dinámicamente -->
+                            <!-- Los extras se cargarán dinámicamente aquí -->
+                            <div class="loading-extras">Cargando servicios adicionales...</div>
                         </div>
                     </div>
 
@@ -171,7 +178,7 @@
                     </div>
                 </section>
 
-                <!-- Summary Section -->
+                <!-- Resumen de la Reserva -->
                 <section class="form-section">
                     <h2 class="section-title">
                         <i class="fas fa-clipboard-check"></i>
@@ -192,8 +199,16 @@
                             <span id="summary-people">-</span>
                         </div>
                         <div class="summary-item">
+                            <span class="summary-label">Duración:</span>
+                            <span id="summary-duration">-</span>
+                        </div>
+                        <div class="summary-item">
                             <span class="summary-label">Sala:</span>
                             <span id="summary-room">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Precio Sala:</span>
+                            <span id="summary-room-price">$0</span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Extras:</span>
@@ -241,7 +256,7 @@
         </div>
     </div>
 
-    <script type="module" src="/js/reservationValidation.js"></script>
-    <script type="module" src="/js/new-reservation.js"></script>
+    <script type="module" src="/js/newReservation.js"></script>
 </body>
+
 </html>
