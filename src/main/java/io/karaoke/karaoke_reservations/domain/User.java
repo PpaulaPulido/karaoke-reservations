@@ -20,7 +20,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
@@ -52,6 +52,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "is_admin", nullable = false) 
+    private Boolean isAdmin = false;
+
     @OneToMany(mappedBy = "user")
     private Set<Reservation> userReservations = new HashSet<>();
 
@@ -62,5 +65,13 @@ public class User {
     @LastModifiedDate
     @Column(nullable = false)
     private OffsetDateTime lastUpdated;
+
+    public Boolean getIsAdmin() {
+        return isAdmin;
+    }
+    
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
 
 }
