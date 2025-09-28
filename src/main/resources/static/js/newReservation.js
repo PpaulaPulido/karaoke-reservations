@@ -154,11 +154,11 @@ class ReservationApp {
         const formData = this.validator.formData;
         const selectedRoom = this.roomManager.getSelectedRoom();
         const selectedExtras = this.extrasManager.getSelectedExtras();
-        
+
         if (this.summaryReservation.updateSummary) {
             this.summaryReservation.updateSummary();
         }
-        
+
         const total = this.summaryReservation.getCalculatedTotal();
 
         const detailsHTML = `
@@ -209,7 +209,7 @@ class ReservationApp {
 
         try {
             this.addExtrasToForm();
-            this.addTotalToForm(); 
+            this.addTotalToForm();
             await this.submitForm();
         } catch (error) {
             console.error('Error confirmando reserva:', error);
@@ -227,6 +227,11 @@ class ReservationApp {
 
         if (!form || !submitBtn) {
             this.showGeneralError('Error interno del sistema. Por favor, recarga la página.');
+            return;
+        }
+
+        // Prevenir envío duplicado
+        if (submitBtn.disabled) {
             return;
         }
 
@@ -269,51 +274,31 @@ class ReservationApp {
                 method: 'POST',
                 body: formDataToSend,
                 headers: {
-                    'Accept': 'text/html, application/xhtml+xml',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
             // 6. Procesar respuesta
-            if (response.ok) {
-                console.log('Reserva creada exitosamente');
-                window.location.href = '/reservations/my-reservations?success=true';
+            const responseText = await response.text();
 
-            } else if (response.status === 400) {
-                // Error de validación del servidor
-                try {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        const errorData = await response.json();
-                        this.displayServerErrors(errorData);
-                    } else {
-                        const errorText = await response.text();
-                        console.error('Error 400 - Respuesta HTML:', errorText);
-                        this.showGeneralError('Error en los datos enviados. Por favor, verifica la información.');
-                    }
-                } catch (e) {
-                    console.error('Error procesando respuesta 400:', e);
-                    this.showGeneralError('Error en la validación de datos del servidor.');
-                }
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (response.ok) {
+                document.open();
+                document.write(responseText);
+                document.close();
 
-            } else if (response.status === 500) {
-                // Error interno del servidor
-                this.showGeneralError('Error interno del servidor. Por favor, intenta más tarde.');
-
+                // Reinicializar la aplicación JavaScript
+                setTimeout(() => {
+                    new ReservationApp();
+                }, 100);
             } else {
-                // Otros errores
-                throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
+                this.showGeneralError('Error del servidor: ' + response.status);
             }
 
         } catch (error) {
             console.error('Error enviando formulario:', error);
-
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                this.showGeneralError('Error de conexión. Verifica tu internet e intenta nuevamente.');
-            } else {
-                this.showGeneralError('Error al crear la reserva. Por favor, intenta nuevamente.');
-            }
-
+            this.showGeneralError('Error al crear la reserva. Por favor, intenta nuevamente.');
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -323,8 +308,6 @@ class ReservationApp {
 
     // Método auxiliar para mostrar errores del servidor
     displayServerErrors(errorData) {
-        console.error('Errores del servidor:', errorData);
-
         if (errorData.errors) {
             // Múltiples errores de validación
             const errorMessages = Object.values(errorData.errors).flat();
@@ -343,11 +326,11 @@ class ReservationApp {
             if (this.validator.updateFormData) {
                 this.validator.updateFormData();
             }
-            
+
             if (this.summaryReservation.updateSummary) {
                 this.summaryReservation.updateSummary();
             }
-            
+
             const total = this.summaryReservation.getCalculatedTotal();
             const totalInput = document.getElementById('totalPriceInput');
 

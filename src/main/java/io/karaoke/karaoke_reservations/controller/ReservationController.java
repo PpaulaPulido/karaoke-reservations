@@ -57,27 +57,29 @@ public class ReservationController {
         return "new-reservation";
     }
 
-    // Procesar creación de reserva
+    // Procesar creación de reserv
     @PostMapping("/create")
     public String createReservation(@ModelAttribute CreateReservationRequest request,
             Authentication authentication,
-            RedirectAttributes redirectAttributes) {
+            Model model) {
         try {
             // Obtener usuario autenticado
             String email = authentication.getName();
             User user = userService.findByEmail(email);
 
             if (user == null) {
-                redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");
-                return "redirect:/reservations/new";
+                model.addAttribute("error", "Usuario no encontrado");
+                model.addAttribute("user", userService.findByEmail(authentication.getName()));
+                return "new-reservation";
             }
 
             // Validar campos requeridos
             if (request.getReservationDate() == null || request.getStartTime() == null ||
                     request.getEndTime() == null || request.getNumberOfPeople() == null ||
-                    request.getRoomId() == null || request.getTotalPrice() == null) { // Validar total también
-                redirectAttributes.addFlashAttribute("error", "Todos los campos obligatorios deben ser completados");
-                return "redirect:/reservations/new";
+                    request.getRoomId() == null || request.getTotalPrice() == null) {
+                model.addAttribute("error", "Todos los campos obligatorios deben ser completados");
+                model.addAttribute("user", user);
+                return "new-reservation";
             }
 
             // Crear entidad Reservation
@@ -106,19 +108,41 @@ public class ReservationController {
                 reservation.setExtras(extrasSet);
             }
 
-            // Guardar reserva
             Reservation savedReservation = reservationService.createReservation(reservation);
-
-            redirectAttributes.addFlashAttribute("success",
-                    "Reserva creada exitosamente para el " + savedReservation.getReservationDate());
             return "redirect:/reservations/my-reservations?success=true";
+
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            String email = authentication.getName();
+            User user = userService.findByEmail(email);
+
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("user", user);
+            model.addAttribute("reservationData", request);
+
+            this.loadFormData(model);
+
+            return "new-reservation";
 
         } catch (Exception e) {
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error",
-                    "Error al crear la reserva: " + e.getMessage());
-            return "redirect:/reservations/new";
+            String email = authentication.getName();
+            User user = userService.findByEmail(email);
+
+            model.addAttribute("error", "Error al crear la reserva: " + e.getMessage());
+            model.addAttribute("user", user);
+            model.addAttribute("reservationData", request);
+            this.loadFormData(model);
+
+            return "new-reservation";
         }
+    }
+
+    private void loadFormData(Model model) {
+        // Cargar salas disponibles si es necesario
+        model.addAttribute("availableRooms", roomService.findAvailableRooms());
+        // Cargar extras si es necesario
+        model.addAttribute("extras", extraService.findAll());
     }
 
     // Cancelar reserva

@@ -77,6 +77,13 @@
             </section>
 
             <!-- Mensajes de restricciones -->
+            <div th:if="${error}" class="constraint-messages" style="display: block;">
+                <div class="constraint-message error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span th:text="${error}">Error message</span>
+                </div>
+            </div>
+            
             <div id="constraint-messages" class="constraint-messages" style="display: none;"></div>
 
             <form id="reservation-form" class="reservation-form" method="post" action="/reservations/create">
@@ -220,7 +227,7 @@
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="button" class="btn-secondary">
-                        <a th:href="@{/dashboard}" class="btn-secondary">Cancelar</a> 
+                        <a th:href="@{/dashboard}" class="btn-secondary">Cancelar</a>
                     </button>
                     <button type="submit" class="btn-primary" id="submit-btn">
                         <i class="fas fa-calendar-check"></i> Confirmar Reserva

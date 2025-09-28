@@ -179,11 +179,6 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
-    // Método simple para obtener estadísticas
-    public long getReservationCount() {
-        return reservationRepository.count();
-    }
-
     public long getReservationCountByUser(Integer userId) {
         return reservationRepository.findByUserId(userId).size();
     }
