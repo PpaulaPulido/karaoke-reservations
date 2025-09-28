@@ -30,8 +30,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
 
        // Verificar disponibilidad de sala (reservas que se solapan)
        @Query("SELECT r FROM Reservation r WHERE r.room.id = :roomId AND r.reservationDate = :date " +
-                     "AND ((r.startTime < :endTime AND r.endTime > :startTime)) " +
-                     "AND r.status != io.karaoke.karaoke_reservations.domain.ReservationStatus.CANCELLED")
+                     "AND r.status != io.karaoke.karaoke_reservations.domain.ReservationStatus.CANCELLED " +
+                     "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
        List<Reservation> findConflictingReservations(
                      @Param("roomId") Integer roomId,
                      @Param("date") LocalDate date,
