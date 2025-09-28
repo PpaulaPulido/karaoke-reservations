@@ -37,9 +37,6 @@ public class Reservation {
     @Column(nullable = false)
     private BigDecimal totalPrice;
 
-    @Column(columnDefinition = "TEXT")
-    private String specialRequests;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -85,9 +82,6 @@ public class Reservation {
 
     public BigDecimal getTotalPrice() { return totalPrice; }
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
-
-    public String getSpecialRequests() { return specialRequests; }
-    public void setSpecialRequests(String specialRequests) { this.specialRequests = specialRequests; }
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }

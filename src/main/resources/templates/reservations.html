@@ -81,7 +81,6 @@
             <!-- Mensajes de restricciones -->
             <div id="constraint-messages" class="constraint-messages" style="display: none;"></div>
 
-            <!-- Reservation Form -->
             <form id="reservation-form" class="reservation-form" method="post" action="/reservations/create">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
@@ -161,14 +160,12 @@
                                 <option value="all">Todos los tipos</option>
                                 <option value="comida">Comida</option>
                                 <option value="bebida">Bebida</option>
-                                <option value="decoracion">Decoración</option>
-                                <option value="entretenimiento">Entretenimiento</option>
+                                <option value="decoración">Decoración</option>
                             </select>
                         </div>
 
                         <div id="extras-grid" class="extras-grid">
                             <!-- Los extras se cargarán dinámicamente aquí -->
-                            <div class="loading-extras">Cargando servicios adicionales...</div>
                         </div>
                     </div>
 

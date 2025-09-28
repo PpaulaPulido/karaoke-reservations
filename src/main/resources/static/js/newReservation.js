@@ -1,5 +1,6 @@
 import RealTimeValidation from "./reservationBasic.js";
 import RoomManager from './roomManager.js';
+import ExtrasManager from './extrasManager.js';
 
 class ReservationApp {
     constructor() {
@@ -11,23 +12,23 @@ class ReservationApp {
     async init() {
         // Inicializar validaciones en tiempo real
         this.validator = new RealTimeValidation();
-        
-        // Inicializar gestor de salas
         this.roomManager = new RoomManager();
-        
+        this.extrasManager = new ExtrasManager();
+
         // Hacer disponibles globalmente
         window.realTimeValidator = this.validator;
         window.roomManager = this.roomManager;
+        window.extrasManager = this.extrasManager;
 
         // Cargar salas disponibles
         await this.roomManager.loadAvailableRooms();
 
         // Configurar filtros
         this.setupRoomFilters();
-        
+
         // Configurar validación del formulario
         this.setupFormValidation();
-        
+
         console.log('Sistema de reservas inicializado correctamente');
     }
 
@@ -71,27 +72,38 @@ class ReservationApp {
 
     async handleFormSubmit(e) {
         e.preventDefault();
-        
-        // 1. Validar campos básicos
+
         const isBasicFormValid = this.validator.validateCompleteForm();
-        
-        // 2. Validar selección de sala
         const isRoomSelected = this.roomManager.validateRoomSelection();
-        
+
         if (!isBasicFormValid || !isRoomSelected) {
             this.showGeneralError('Por favor, completa todos los campos requeridos y selecciona una sala.');
             this.scrollToFirstError();
             return;
         }
 
-        // 3. Si todo está válido, enviar el formulario
+        this.addExtrasToForm();
         this.submitForm();
+    }
+
+    addExtrasToForm() {
+        const form = document.getElementById('reservation-form');
+        const selectedExtras = this.extrasManager.getSelectedExtras();
+
+        document.querySelectorAll('input[name="extraIds"]').forEach(input => input.remove());
+        selectedExtras.forEach(extra => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'extraIds';
+            input.value = extra.id;
+            form.appendChild(input);
+        });
     }
 
     async submitForm() {
         const form = document.getElementById('reservation-form');
         const submitBtn = form.querySelector('button[type="submit"]');
-        
+
         // Mostrar estado de carga
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando reserva...';
@@ -138,7 +150,7 @@ class ReservationApp {
             errorElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        
+
         const roomError = document.getElementById('room-error');
         if (roomError && roomError.style.display === 'block') {
             roomError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -146,7 +158,32 @@ class ReservationApp {
     }
 }
 
+function fixSelects() {
+    const selects = document.querySelectorAll('select.form-input');
+    selects.forEach(select => {
+        // Forzar estilos inline
+        select.style.backgroundColor = '#1a1a2e';
+        select.style.color = '#ffffff';
+        select.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+        select.style.padding = '12px 16px';
+        select.style.borderRadius = '8px';
+        select.style.fontSize = '16px';
+        select.style.width = '100%';
+        select.style.appearance = 'menulist';
+        select.style.WebkitAppearance = 'menulist';
+        select.style.MozAppearance = 'menulist';
+
+        const parent = select.parentElement;
+        if (parent.classList.contains('select-wrapper') ||
+            parent.classList.contains('custom-select')) {
+            parent.style.position = 'relative';
+            parent.style.zIndex = 'auto';
+        }
+    });
+}
+
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
     new ReservationApp();
+    // fixSelects();
 });
