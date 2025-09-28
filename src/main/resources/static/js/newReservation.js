@@ -1,11 +1,14 @@
 import RealTimeValidation from "./reservationBasic.js";
 import RoomManager from './roomManager.js';
 import ExtrasManager from './extrasManager.js';
+import SummaryReservation from './summaryReservation.js';
 
 class ReservationApp {
     constructor() {
         this.validator = null;
         this.roomManager = null;
+        this.extrasManager = null;
+        this.summaryReservation = null;
         this.init();
     }
 
@@ -14,11 +17,13 @@ class ReservationApp {
         this.validator = new RealTimeValidation();
         this.roomManager = new RoomManager();
         this.extrasManager = new ExtrasManager();
+        this.summaryReservation = new SummaryReservation(this.validator, this.roomManager, this.extrasManager);
 
         // Hacer disponibles globalmente
         window.realTimeValidator = this.validator;
         window.roomManager = this.roomManager;
         window.extrasManager = this.extrasManager;
+        window.summaryReservation = this.summaryReservation;
 
         // Cargar salas disponibles
         await this.roomManager.loadAvailableRooms();
@@ -83,6 +88,7 @@ class ReservationApp {
         }
 
         this.addExtrasToForm();
+        this.addTotalToForm();
         this.submitForm();
     }
 
@@ -98,6 +104,18 @@ class ReservationApp {
             input.value = extra.id;
             form.appendChild(input);
         });
+    }
+
+    addTotalToForm() {
+        const form = document.getElementById('reservation-form');
+        const total = this.summaryManager.getCalculatedTotal();
+        document.querySelectorAll('input[name="totalPrice"]').forEach(input => input.remove());
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'totalPrice';
+        input.value = total;
+        form.appendChild(input);
     }
 
     async submitForm() {
@@ -158,32 +176,7 @@ class ReservationApp {
     }
 }
 
-function fixSelects() {
-    const selects = document.querySelectorAll('select.form-input');
-    selects.forEach(select => {
-        // Forzar estilos inline
-        select.style.backgroundColor = '#1a1a2e';
-        select.style.color = '#ffffff';
-        select.style.border = '1px solid rgba(255, 255, 255, 0.3)';
-        select.style.padding = '12px 16px';
-        select.style.borderRadius = '8px';
-        select.style.fontSize = '16px';
-        select.style.width = '100%';
-        select.style.appearance = 'menulist';
-        select.style.WebkitAppearance = 'menulist';
-        select.style.MozAppearance = 'menulist';
-
-        const parent = select.parentElement;
-        if (parent.classList.contains('select-wrapper') ||
-            parent.classList.contains('custom-select')) {
-            parent.style.position = 'relative';
-            parent.style.zIndex = 'auto';
-        }
-    });
-}
-
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
     new ReservationApp();
-    // fixSelects();
 });
