@@ -172,4 +172,20 @@ public class ReservationController {
 
         return "redirect:/reservations/my-reservations";
     }
+
+    // Completar reserva (para administradores o sistema)
+    @PostMapping("/{id}/complete")
+    public String completeReservation(@PathVariable Integer id,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            reservationService.completeReservation(id);
+            redirectAttributes.addFlashAttribute("success", "Reserva marcada como completada");
+
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/reservations/my-reservations";
+    }
 }

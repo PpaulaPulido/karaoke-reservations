@@ -1,6 +1,8 @@
 package io.karaoke.karaoke_reservations.repos;
 
 import io.karaoke.karaoke_reservations.domain.Reservation;
+import io.karaoke.karaoke_reservations.domain.ReservationStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,9 +25,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
        // Reservas entre fechas
        List<Reservation> findByReservationDateBetween(LocalDate startDate, LocalDate endDate);
 
+       // Reservas por estado
+       List<Reservation> findByStatus(ReservationStatus status);
+
        // Verificar disponibilidad de sala (reservas que se solapan)
        @Query("SELECT r FROM Reservation r WHERE r.room.id = :roomId AND r.reservationDate = :date " +
-                     "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
+                     "AND ((r.startTime < :endTime AND r.endTime > :startTime)) " +
+                     "AND r.status != io.karaoke.karaoke_reservations.domain.ReservationStatus.CANCELLED")
        List<Reservation> findConflictingReservations(
                      @Param("roomId") Integer roomId,
                      @Param("date") LocalDate date,

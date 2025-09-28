@@ -1,6 +1,7 @@
 package io.karaoke.karaoke_reservations.service;
 
 import io.karaoke.karaoke_reservations.domain.Reservation;
+import io.karaoke.karaoke_reservations.domain.ReservationStatus;
 import io.karaoke.karaoke_reservations.domain.Room;
 import io.karaoke.karaoke_reservations.repos.ReservationRepository;
 import io.karaoke.karaoke_reservations.repos.RoomRepository;
@@ -160,6 +161,7 @@ public class ReservationService {
         reservationRepository.deleteById(reservationId);
     }
 
+    // Cancelar reserva
     public void cancelReservation(Integer reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
@@ -171,12 +173,37 @@ public class ReservationService {
             throw new IllegalArgumentException("No se puede cancelar una reserva pasada");
         }
 
+        // Cambiar estado a CANCELLED en lugar de eliminar
+        reservation.setStatus(ReservationStatus.CANCELLED);
+
         // Liberar la sala
         Room room = reservation.getRoom();
         room.setIsAvailable(true);
         roomRepository.save(room);
 
-        reservationRepository.delete(reservation);
+        reservationRepository.save(reservation); // Guardar el cambio de estado
+    }
+
+    // Nuevo método para marcar reserva como completada
+    public void completeReservation(Integer reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        // Solo permitir completar reservas pasadas
+        if (reservation.getReservationDate().isAfter(LocalDate.now()) ||
+                (reservation.getReservationDate().equals(LocalDate.now()) &&
+                        reservation.getEndTime().isAfter(LocalTime.now()))) {
+            throw new IllegalArgumentException("No se puede completar una reserva futura");
+        }
+
+        reservation.setStatus(ReservationStatus.COMPLETED);
+        reservationRepository.save(reservation);
+    }
+
+    // Método para obtener reservas por estado
+    public List<Reservation> findByStatus(ReservationStatus status) {
+        // Necesitarás agregar este método en el Repository
+        return reservationRepository.findByStatus(status);
     }
 
     public long getReservationCountByUser(Integer userId) {

@@ -11,6 +11,7 @@ import java.util.Set;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import io.karaoke.karaoke_reservations.domain.ReservationStatus;
 
 @Entity
 @Table(name = "reservations")
@@ -38,6 +39,10 @@ public class Reservation {
 
     @Column(nullable = false)
     private BigDecimal totalPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReservationStatus status = ReservationStatus.CONFIRMED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -116,6 +121,14 @@ public class Reservation {
         this.totalPrice = totalPrice;
     }
 
+    public ReservationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ReservationStatus status) {
+        this.status = status;
+    }
+
     public User getUser() {
         return user;
     }
@@ -187,6 +200,7 @@ public class Reservation {
 
             this.totalPrice = roomPrice.add(extrasPrice);
         }
+
     }
 
     // Método para agregar extra
