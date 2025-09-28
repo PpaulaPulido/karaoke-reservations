@@ -8,7 +8,7 @@ class SummaryReservation {
 
     init() {
         this.setupEventListeners();
-        this.updateSummary(); 
+        this.updateSummary();
     }
 
     setupEventListeners() {
@@ -17,8 +17,18 @@ class SummaryReservation {
         basicFields.forEach(fieldName => {
             const input = document.getElementById(fieldName);
             if (input) {
-                input.addEventListener('change', () => this.updateSummary());
-                input.addEventListener('input', () => this.updateSummary());
+                input.addEventListener('change', () => {
+                    if (this.validator.updateFormData) {
+                        this.validator.updateFormData();
+                    }
+                    this.updateSummary();
+                });
+                input.addEventListener('input', () => {
+                    if (this.validator.updateFormData) {
+                        this.validator.updateFormData();
+                    }
+                    this.updateSummary();
+                });
             }
         });
 
@@ -40,7 +50,6 @@ class SummaryReservation {
     }
 
     setupRoomObserver() {
-        // Guardar referencia a los métodos originales
         this.roomManager._originalSelectRoom = this.roomManager.selectRoom;
         this.roomManager._originalLoadRooms = this.roomManager.loadAvailableRooms;
 
@@ -98,12 +107,12 @@ class SummaryReservation {
     }
 
     updateBasicInfo() {
-        const formData = this.validator?.formData || {};
+        const formData = this.getCurrentFormData();
 
         // Fecha
         const dateElement = document.getElementById('summary-date');
         if (dateElement) {
-            dateElement.textContent = formData.reservationDate 
+            dateElement.textContent = formData.reservationDate
                 ? this.formatDate(formData.reservationDate)
                 : '-';
         }
@@ -135,7 +144,7 @@ class SummaryReservation {
     updateRoomInfo() {
         const roomElement = document.getElementById('summary-room');
         const selectedRoom = this.roomManager?.getSelectedRoom();
-        
+
         if (roomElement) {
             roomElement.textContent = selectedRoom ? selectedRoom.name : '-';
         }
@@ -146,41 +155,23 @@ class SummaryReservation {
     updateRoomPrice() {
         const roomPriceElement = document.getElementById('summary-room-price');
         const selectedRoom = this.roomManager?.getSelectedRoom();
+        const formData = this.getCurrentFormData();
 
         if (!roomPriceElement) return;
 
-        if (!selectedRoom) {
+        if (!selectedRoom || !formData.startTime || !formData.endTime) {
             roomPriceElement.textContent = '$0';
             return;
         }
 
         try {
-            const roomPrice = selectedRoom.pricePerHour || 0;
-            roomPriceElement.textContent = `$${roomPrice.toLocaleString()}`;
+            const durationInHours = this.calculateExactDurationInHours(formData.startTime, formData.endTime);
+            const roomPrice = selectedRoom.pricePerHour * durationInHours;
+            roomPriceElement.textContent = `$${Math.round(roomPrice).toLocaleString()}`;
+
         } catch (error) {
-            console.error('Error mostrando precio de la sala:', error);
             roomPriceElement.textContent = '$0';
         }
-    }
-
-
-    calculateDurationMinutes(startTime, endTime) {
-        if (!startTime || !endTime) return 0;
-        
-        const start = this.timeToMinutes(startTime);
-        const end = this.timeToMinutes(endTime);
-        let duration = end - start;
-        
-        // Manejar reservas que cruzan la medianoche
-        if (duration < 0) duration += 24 * 60;
-        
-        return Math.max(0, duration); // Asegurar que no sea negativo
-    }
-
-    timeToMinutes(timeString) {
-        if (!timeString) return 0;
-        const [hours, minutes] = timeString.split(':').map(Number);
-        return hours * 60 + minutes;
     }
 
     updateExtrasInfo() {
@@ -203,30 +194,98 @@ class SummaryReservation {
         const totalElement = document.getElementById('summary-total');
         if (!totalElement) return;
 
-        let total = 0;
-
         try {
-            // Precio FIJO de la sala (no depende de la duración)
-            const selectedRoom = this.roomManager?.getSelectedRoom();
-            
-            if (selectedRoom) {
-                total += selectedRoom.pricePerHour || 0;
-            }
-
-            // Precio de los extras
-            const selectedExtras = this.extrasManager?.getSelectedExtras() || [];
-            const extrasTotal = selectedExtras.reduce((sum, extra) => sum + (extra.price || 0), 0);
-            total += extrasTotal;
-
-            // Actualizar total
+            const total = this.getCalculatedTotal();
             totalElement.textContent = `$${total.toLocaleString()}`;
-            
-            // Animación de actualización
             this.animateTotalUpdate(totalElement);
+
         } catch (error) {
             console.error('Error actualizando precios:', error);
             totalElement.textContent = '$0';
         }
+    }
+
+    getCurrentFormData() {
+        return {
+            reservationDate: document.getElementById('reservationDate')?.value || '',
+            startTime: document.getElementById('startTime')?.value || '',
+            endTime: document.getElementById('endTime')?.value || '',
+            numberOfPeople: document.getElementById('numberOfPeople')?.value || ''
+        };
+    }
+
+    calculateExactDurationInHours(startTime, endTime) {
+        if (!startTime || !endTime) return 0;
+
+        const startMinutes = this.timeToMinutes(startTime);
+        const endMinutes = this.timeToMinutes(endTime);
+        
+        let durationInMinutes;
+
+        if (endMinutes < startMinutes) {
+            // Reserva que pasa la medianoche
+            durationInMinutes = (24 * 60 - startMinutes) + endMinutes;
+        } else {
+            // Reserva normal
+            durationInMinutes = endMinutes - startMinutes;
+        }
+
+        // Convertir a horas con decimales exactos
+        const durationInHours = durationInMinutes / 60;
+        return durationInHours;
+    }
+
+    timeToMinutes(timeString) {
+        if (!timeString) return 0;
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    calculateDurationMinutes(startTime, endTime) {
+        if (!startTime || !endTime) return 0;
+
+        const start = this.timeToMinutes(startTime);
+        const end = this.timeToMinutes(endTime);
+        let duration = end - start;
+
+        if (duration < 0) duration += 24 * 60;
+
+        return Math.max(0, duration);
+    }
+
+    getCalculatedTotal() {
+        let total = 0;
+
+        try {
+            const selectedRoom = this.roomManager?.getSelectedRoom();
+            const selectedExtras = this.extrasManager?.getSelectedExtras() || [];
+            const formData = this.getCurrentFormData();
+
+            if (!selectedRoom || !formData.startTime || !formData.endTime) {
+                return total;
+            }
+
+            const durationInHours = this.calculateExactDurationInHours(formData.startTime, formData.endTime);
+            const roomPrice = selectedRoom.pricePerHour * durationInHours;
+            total += roomPrice;
+
+            const extrasPrice = selectedExtras.reduce((sum, extra) => sum + (extra.price || 0), 0);
+            total += extrasPrice;
+
+            console.log('🔢 CÁLCULO TOTAL FINAL:', {
+                sala: selectedRoom.name,
+                precioHora: selectedRoom.pricePerHour,
+                duracion: durationInHours.toFixed(2) + ' horas',
+                precioSala: Math.round(roomPrice),
+                extras: extrasPrice,
+                total: Math.round(total)
+            });
+
+        } catch (error) {
+            console.error('Error calculando total:', error);
+        }
+
+        return Math.round(total);
     }
 
     animateTotalUpdate(element) {
@@ -238,7 +297,7 @@ class SummaryReservation {
 
     formatDate(dateString) {
         if (!dateString) return '-';
-        
+
         try {
             const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('es-ES', {
@@ -254,42 +313,19 @@ class SummaryReservation {
 
     formatTime(timeString) {
         if (!timeString) return '';
-        
+
         try {
             const [hours, minutes] = timeString.split(':');
             const hour = parseInt(hours);
             const period = hour >= 12 ? 'PM' : 'AM';
             const displayHour = hour % 12 || 12;
-            
+
             return `${displayHour}:${minutes} ${period}`;
         } catch (error) {
             return timeString;
         }
     }
 
-    // Método para obtener el total calculado
-    getCalculatedTotal() {
-        let total = 0;
-
-        try {
-            // Precio FIJO de la sala
-            const selectedRoom = this.roomManager?.getSelectedRoom();
-            
-            if (selectedRoom) {
-                total += selectedRoom.pricePerHour || 0;
-            }
-
-            // Precio de los extras
-            const selectedExtras = this.extrasManager?.getSelectedExtras() || [];
-            total += selectedExtras.reduce((sum, extra) => sum + (extra.price || 0), 0);
-        } catch (error) {
-            console.error('Error calculando total:', error);
-        }
-
-        return total;
-    }
-
-    // Método para limpiar el resumen
     clearSummary() {
         const elementsToClear = [
             'summary-date', 'summary-time', 'summary-people', 'summary-duration',

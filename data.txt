@@ -1,0 +1,109 @@
+
+-- Ver las secuencias existentes en caso de error 
+SELECT sequence_name FROM information_schema.sequences;
+ALTER TABLE rooms ALTER COLUMN id SET DEFAULT nextval('primary_sequence');
+SELECT setval('primary_sequence', (SELECT COALESCE(MAX(id), 10000) FROM rooms));
+
+"---------------------------------------------------------------------------------------------------------------------"
+-- Insertar 15 salas de karaoke con precios
+INSERT INTO rooms (name, min_capacity, max_capacity, is_available, price_per_hour, description, date_created, last_updated) 
+VALUES 
+('Sala Básica', 2, 4, true, 30000.00, 'Ideal para parejas o grupos pequeños. Precio económico con buena calidad.', NOW(), NOW()),
+('Sala Estándar', 2, 6, true, 35000.00, 'Perfecta para grupos de amigos. Equilibrio entre precio y comodidad.', NOW(), NOW()),
+('Sala Familiar', 2, 8, true, 40000.00, 'Amplio espacio para familias. Ideal para celebraciones familiares.', NOW(), NOW()),
+('Sala Fiesta', 2, 10, true, 45000.00, 'Decoración festiva y ambiente vibrante para cumpleaños y celebraciones.', NOW(), NOW()),
+('Sala Grupal', 2, 12, true, 50000.00, 'Espacio amplio para grupos grandes. Perfecta para despedidas y eventos.', NOW(), NOW()),
+('Sala Premium', 2, 8, true, 55000.00, 'Calidad de sonido superior y equipos de última generación.', NOW(), NOW()),
+('Sala VIP', 2, 10, true, 60000.00, 'Experiencia premium con amenities exclusivos y servicio personalizado.', NOW(), NOW()),
+('Sala Élite', 2, 12, true, 65000.00, 'Máxima comodidad y tecnología de punta para los más exigentes.', NOW(), NOW()),
+('Sala Megapantalla', 2, 8, true, 48000.00, 'Pantalla gigante de 85 pulgadas para experiencia visual inmersiva.', NOW(), NOW()),
+('Sala Neon', 2, 10, true, 52000.00, 'Efectos de luces neon y iluminación LED que crean atmósfera única.', NOW(), NOW()),
+('Sala Temática', 2, 6, true, 38000.00, 'Decoración temática variable mensualmente. ¡Siempre una sorpresa!', NOW(), NOW()),
+('Sala Relax', 2, 4, true, 32000.00, 'Ambiente relajado con iluminación suave. Perfecta para después del trabajo.', NOW(), NOW()),
+('Sala Express', 2, 4, true, 30000.00, 'Reservas rápidas para sesiones express de 1-2 horas máximo.', NOW(), NOW()),
+('Sala Celebración', 2, 15, true, 70000.00, 'Nuestra sala más grande, diseñada especialmente para eventos grandes.', NOW(), NOW()),
+('Sara Corporativa', 2, 12, true, 58000.00, 'Ideal para eventos empresariales y team building. Ambiente profesional.', NOW(), NOW());
+
+
+"---------------------------------------------------------------------------------------------------------------------"
+
+-- Script para cargar datos iniciales de extras en la tabla EXTRAS
+INSERT INTO extras (id, name, type, description, price, date_created, last_updated) VALUES
+
+-- Decoraciones (IDs 1-3)
+(1, 'Decoración Cumpleaños', 'Decoración', 'Decoración temática de cumpleaños con globos, guirnaldas y cartel personalizado. Incluye montaje y desmontaje.', 30000.00, NOW(), NOW()),
+
+(2, 'Decoración Grado', 'Decoración', 'Decoración especial de graduación con globos dorados/negros, banner de felicitaciones y mesa de fotos.', 35000.00, NOW(), NOW()),
+
+(3, 'Decoración Solter@s', 'Decoración', 'Decoración temática para despedida de soltero/a con accesorios divertidos y globos personalizados.', 40000.00, NOW(), NOW()),
+
+-- Bebidas (IDs 4-10)
+(4, 'Barra Libre Básica', 'Bebida', 'Bebidas no alcohólicas ilimitadas (jugos, aguas y gaseosas) por hasta 2 horas.', 30000.00, NOW(), NOW()),
+
+(5, 'Barra Libre Premium', 'Bebida', 'Incluye cervezas, cócteles básicos, gaseosas y jugos por hasta 2 horas.', 65000.00, NOW(), NOW()),
+
+(6, 'Plan Refresco Gaseosas', 'Bebida', 'Surtido de gaseosas (Coca-Cola, Sprite, Fanta) ilimitadas por 2 horas.', 20000.00, NOW(), NOW()),
+
+(7, 'Combo Whisky & Aguas', 'Bebida', '1 botella de whisky estándar con 3 aguas minerales y 2 sodas. Ideal para grupos pequeños (6 personas).', 120000.00, NOW(), NOW()),
+
+(8, 'Combo Rumba Internacional', 'Bebida', 'Incluye 1 botella de ron, 1 de tequila y 1 de aguardiente con 5 sodas y 5 aguas. Para grupos de hasta 10 personas.', 200000.00, NOW(), NOW()),
+
+(9, 'Combo Tequila Express', 'Bebida', '1 botella de tequila con 3 aguas y 3 sodas. Para 6 personas.', 150000.00, NOW(), NOW()),
+
+(10, 'Combo Mini Aguardiente', 'Bebida', '3 botellas pequeñas de aguardiente (medio litro cada una) con 4 aguas minerales.', 100000.00, NOW(), NOW()),
+
+-- Comida (IDs 11-15)
+(11, 'Plato de Bocadillos', 'Comida', 'Selección de bocadillos salados (canapés, croquetas, palitos de queso). Para 6 personas.', 25000.00, NOW(), NOW()),
+
+(12, 'Pizza en Porciones', 'Comida', 'Pizza mixta en 8 porciones (jamón, queso, pepperoni). Ideal para compartir entre 3-4 personas.', 30000.00, NOW(), NOW()),
+
+(13, 'Mini Empanadas', 'Comida', 'Bandeja con 20 mini empanadas (pollo y carne). Rinde para 5 personas.', 22000.00, NOW(), NOW()),
+
+(14, 'Perros Calientes', 'Comida', 'Combo de 5 perros calientes con pan, salchicha, papitas y salsas variadas.', 28000.00, NOW(), NOW()),
+
+(15, 'Snacks Chatarra Mix', 'Comida', 'Paquete surtido de papas fritas, chitos, doritos, maní y nachos con queso. Para 6 personas.', 25000.00, NOW(), NOW());
+
+
+"---------------------------------------------------------------------------------------------------------------------"
+Consultas
+
+select * from users;
+select * from rooms;
+select * from extras;
+select * from reservations;
+select * from reservation_extras;
+
+
+-- Ver todos los extras de una reserva específica
+SELECT 
+    r.id as reserva_id,
+    r.reservation_date as fecha,
+    u.full_name as usuario,
+    room.name as sala,
+    e.id as extra_id,
+    e.name as extra_nombre,
+    e.type as tipo_extra,
+    e.price as precio_extra
+FROM reservations r
+JOIN users u ON r.user_id = u.id
+JOIN rooms room ON r.room_id = room.id
+JOIN reservation_extras re ON r.id = re.reservation_id
+JOIN extras e ON re.extra_id = e.id
+WHERE r.id = 2;  
+
+--ver todas las reservaciones con sus salas y la cantidad de extrasSELECT 
+    r.id,
+    r.reservation_date,
+    r.start_time,
+    r.end_time, 
+    r.number_of_people,
+    r.total_price,
+    u.full_name as usuario,
+    room.name as sala,
+	room.id as sala_id,
+    COUNT(re.extra_id) as cantidad_extras
+FROM reservations r
+JOIN users u ON r.user_id = u.id
+JOIN rooms room ON r.room_id = room.id
+LEFT JOIN reservation_extras re ON r.id = re.reservation_id
+GROUP BY r.id, u.full_name, room.name,room.id;

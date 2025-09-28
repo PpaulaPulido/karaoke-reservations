@@ -173,8 +173,7 @@ public class Reservation {
         }
 
         // 2. Calcular precio
-        if (this.totalPrice == null && this.room != null && this.durationMinutes != null) {
-
+        if (this.room != null && this.durationMinutes != null) {
             double hours = this.durationMinutes / 60.0;
             BigDecimal roomPrice = BigDecimal.valueOf(this.room.getPricePerHour() * hours);
 
@@ -186,7 +185,6 @@ public class Reservation {
                 }
             }
 
-            // Total
             this.totalPrice = roomPrice.add(extrasPrice);
         }
     }

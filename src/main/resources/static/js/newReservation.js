@@ -62,6 +62,9 @@ class ReservationApp {
             if (input) {
                 input.addEventListener('change', async (e) => {
                     setTimeout(async () => {
+                        if (this.validator.updateFormData) {
+                            this.validator.updateFormData();
+                        }
                         const formData = this.validator.formData;
                         if (formData.reservationDate && formData.startTime && formData.endTime) {
                             await this.roomManager.loadAvailableRooms(formData.numberOfPeople);
@@ -115,6 +118,10 @@ class ReservationApp {
     }
 
     showConfirmationModal() {
+        if (this.validator.updateFormData) {
+            this.validator.updateFormData();
+        }
+
         // Validar formulario antes de mostrar el modal
         const isBasicFormValid = this.validator.validateCompleteForm();
         const isRoomSelected = this.roomManager.validateRoomSelection();
@@ -140,9 +147,18 @@ class ReservationApp {
         const detailsContainer = document.getElementById('confirmation-details');
         if (!detailsContainer) return;
 
+        if (this.validator.updateFormData) {
+            this.validator.updateFormData();
+        }
+
         const formData = this.validator.formData;
         const selectedRoom = this.roomManager.getSelectedRoom();
         const selectedExtras = this.extrasManager.getSelectedExtras();
+        
+        if (this.summaryReservation.updateSummary) {
+            this.summaryReservation.updateSummary();
+        }
+        
         const total = this.summaryReservation.getCalculatedTotal();
 
         const detailsHTML = `
@@ -183,6 +199,10 @@ class ReservationApp {
         const confirmBtn = document.getElementById('confirm-reservation');
         const originalText = confirmBtn.innerHTML;
 
+        if (this.validator.updateFormData) {
+            this.validator.updateFormData();
+        }
+
         // Mostrar estado de carga
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         confirmBtn.disabled = true;
@@ -208,6 +228,10 @@ class ReservationApp {
         if (!form || !submitBtn) {
             this.showGeneralError('Error interno del sistema. Por favor, recarga la página.');
             return;
+        }
+
+        if (this.validator.updateFormData) {
+            this.validator.updateFormData();
         }
 
         // Mostrar estado de carga
@@ -316,6 +340,14 @@ class ReservationApp {
     // Método para añadir el total
     addTotalToForm() {
         try {
+            if (this.validator.updateFormData) {
+                this.validator.updateFormData();
+            }
+            
+            if (this.summaryReservation.updateSummary) {
+                this.summaryReservation.updateSummary();
+            }
+            
             const total = this.summaryReservation.getCalculatedTotal();
             const totalInput = document.getElementById('totalPriceInput');
 
@@ -353,6 +385,7 @@ class ReservationApp {
                 input.value = extra.id;
                 form.appendChild(input);
             });
+
         } catch (error) {
             console.error('Error en addExtrasToForm:', error);
         }

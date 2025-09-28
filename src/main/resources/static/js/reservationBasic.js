@@ -23,6 +23,7 @@ class RealTimeValidation {
         this.setupEventListeners();
         this.initializeDateRestrictions();
         this.setupFormSubmission(); 
+        this.updateFormData(); 
     }
 
     setupEventListeners() {
@@ -34,52 +35,110 @@ class RealTimeValidation {
 
         // Validación de fecha
         if (reservationDateInput) {
-            reservationDateInput.addEventListener('input', (e) => this.validateDateField(e.target));
-            reservationDateInput.addEventListener('change', (e) => this.validateDateField(e.target));
-            reservationDateInput.addEventListener('blur', (e) => this.validateDateField(e.target));
+            reservationDateInput.addEventListener('input', (e) => {
+                this.updateFormData(); 
+                this.validateDateField(e.target);
+            });
+            reservationDateInput.addEventListener('change', (e) => {
+                this.updateFormData(); 
+                this.validateDateField(e.target);
+            });
+            reservationDateInput.addEventListener('blur', (e) => {
+                this.updateFormData(); 
+                this.validateDateField(e.target);
+            });
         }
 
         // Validación de hora de inicio
         if (startTimeInput) {
-            startTimeInput.addEventListener('input', (e) => this.validateTimeFields());
-            startTimeInput.addEventListener('change', (e) => this.validateTimeFields());
-            startTimeInput.addEventListener('blur', (e) => this.validateTimeFields());
+            startTimeInput.addEventListener('input', (e) => {
+                this.updateFormData(); 
+                this.validateTimeFields();
+            });
+            startTimeInput.addEventListener('change', (e) => {
+                this.updateFormData(); 
+                this.validateTimeFields();
+            });
+            startTimeInput.addEventListener('blur', (e) => {
+                this.updateFormData();
+                this.validateTimeFields();
+            });
         }
 
         // Validación de hora de fin
         if (endTimeInput) {
-            endTimeInput.addEventListener('input', (e) => this.validateTimeFields());
-            endTimeInput.addEventListener('change', (e) => this.validateTimeFields());
-            endTimeInput.addEventListener('blur', (e) => this.validateTimeFields());
+            endTimeInput.addEventListener('input', (e) => {
+                this.updateFormData();
+                this.validateTimeFields();
+            });
+            endTimeInput.addEventListener('change', (e) => {
+                this.updateFormData();
+                this.validateTimeFields();
+            });
+            endTimeInput.addEventListener('blur', (e) => {
+                this.updateFormData();
+                this.validateTimeFields();
+            });
         }
 
         // Validación de número de personas
         if (numberOfPeopleInput) {
-            numberOfPeopleInput.addEventListener('input', (e) => this.validateNumberOfPeopleField(e.target));
-            numberOfPeopleInput.addEventListener('change', (e) => this.validateNumberOfPeopleField(e.target));
-            numberOfPeopleInput.addEventListener('blur', (e) => this.validateNumberOfPeopleField(e.target));
+            numberOfPeopleInput.addEventListener('input', (e) => {
+                this.updateFormData();
+                this.validateNumberOfPeopleField(e.target);
+            });
+            numberOfPeopleInput.addEventListener('change', (e) => {
+                this.updateFormData(); 
+                this.validateNumberOfPeopleField(e.target);
+            });
+            numberOfPeopleInput.addEventListener('blur', (e) => {
+                this.updateFormData(); 
+                this.validateNumberOfPeopleField(e.target);
+            });
         }
 
         // Actualizar duración cuando cambien los tiempos
         if (startTimeInput && endTimeInput) {
-            startTimeInput.addEventListener('change', () => this.updateDurationField());
-            endTimeInput.addEventListener('change', () => this.updateDurationField());
+            startTimeInput.addEventListener('change', () => {
+                this.updateFormData();
+                this.updateDurationField();
+            });
+            endTimeInput.addEventListener('change', () => {
+                this.updateFormData(); 
+                this.updateDurationField();
+            });
         }
     }
 
-    // NUEVO MÉTODO: Configurar la prevención del envío del formulario
+    //Configurar la prevención del envío del formulario
     setupFormSubmission() {
         const form = document.getElementById('reservation-form');
         if (form) {
             form.addEventListener('submit', (e) => {
+                this.updateFormData(); 
                 if (!this.validateCompleteForm()) {
-                    e.preventDefault(); // ← Prevenir el envío del formulario
+                    e.preventDefault(); 
                     this.showGeneralError('Por favor, corrige todos los errores antes de enviar el formulario.');
                 } else {
-                    // Opcional: Mostrar mensaje de éxito o proceder con el envío
                     console.log('Formulario válido, se puede enviar');
                 }
             });
+        }
+    }
+
+    updateFormData() {
+        const previousData = {...this.formData};
+        
+        this.formData = {
+            reservationDate: document.getElementById('reservationDate')?.value || '',
+            startTime: document.getElementById('startTime')?.value || '',
+            endTime: document.getElementById('endTime')?.value || '',
+            numberOfPeople: document.getElementById('numberOfPeople')?.value || ''
+        };
+
+        // Solo log si hay cambios
+        if (JSON.stringify(previousData) !== JSON.stringify(this.formData)) {
+            console.log('📋 FormData actualizado:', this.formData);
         }
     }
 
@@ -99,7 +158,6 @@ class RealTimeValidation {
                 errorContainer.style.display = 'none';
             }, 5000);
         } else {
-            // Fallback: usar alert si no existe el contenedor
             alert(message);
         }
     }
@@ -123,7 +181,7 @@ class RealTimeValidation {
     validateDateField(input) {
         const value = input.value;
         const errorElement = document.getElementById('reservationDate-error');
-        this.formData.reservationDate = value;
+        
         hideError(input, errorElement);
 
         if (!value) {
@@ -150,11 +208,6 @@ class RealTimeValidation {
 
         if (!startTimeInput || !endTimeInput || !startErrorElement || !endErrorElement) return false;
 
-        // Actualizar datos del formulario
-        this.formData.startTime = startTimeInput.value;
-        this.formData.endTime = endTimeInput.value;
-
-        // Limpiar errores anteriores
         hideError(startTimeInput, startErrorElement);
         hideError(endTimeInput, endErrorElement);
 
@@ -180,10 +233,6 @@ class RealTimeValidation {
         const value = input.value;
         const errorElement = document.getElementById('numberOfPeople-error');
         
-        // Actualizar datos del formulario
-        this.formData.numberOfPeople = value;
-
-        // Limpiar error anterior
         hideError(input, errorElement);
 
         if (!value || value.trim() === '') {
@@ -246,6 +295,8 @@ class RealTimeValidation {
 
     // Método para validar todo el formulario antes de enviar
     validateCompleteForm() {
+        this.updateFormData();
+
         const dateInput = document.getElementById('reservationDate');
         const startTimeInput = document.getElementById('startTime');
         const endTimeInput = document.getElementById('endTime');
@@ -283,6 +334,7 @@ class RealTimeValidation {
 
     // Método para obtener los datos del formulario validados
     getValidatedFormData() {
+        this.updateFormData(); 
         if (this.validateCompleteForm()) {
             return { ...this.formData };
         }

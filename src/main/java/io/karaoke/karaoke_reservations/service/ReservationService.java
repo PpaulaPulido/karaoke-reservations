@@ -35,8 +35,8 @@ public class ReservationService {
         Room room = reservation.getRoom();
         room.setIsAvailable(false);
         roomRepository.save(room);
-
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        return savedReservation;
     }
 
     // Obtener reserva por ID
