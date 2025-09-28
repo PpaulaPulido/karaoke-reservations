@@ -25,7 +25,6 @@
             </div>
             <div class="user-details">
                 <h3 th:text="${user.fullName}">Usuario</h3>
-                <span th:text="${user.isAdmin ? 'Administrador' : 'Miembro Premium'}">Miembro Premium</span>
             </div>
         </div>
 
@@ -33,7 +32,6 @@
             <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="/reservations"><i class="fas fa-calendar-check"></i> Mis Reservas</a></li>
             <li><a href="/new-reservation" class="active"><i class="fas fa-calendar-plus"></i> Nueva Reserva</a></li>
-            <li><a href="/profile"><i class="fas fa-user-edit"></i> Mi Perfil</a></li>
         </ul>
 
         <div class="sidebar-footer">
@@ -220,8 +218,8 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="location.href='/reservations'">
-                        <i class="fas fa-arrow-left"></i> Cancelar
+                    <button type="button" class="btn-secondary">
+                        <a href="/dashboard"><i class="fas fa-arrow-left"></i>Cancelar</a>  
                     </button>
                     <button type="submit" class="btn-primary" id="submit-btn">
                         <i class="fas fa-calendar-check"></i> Confirmar Reserva
