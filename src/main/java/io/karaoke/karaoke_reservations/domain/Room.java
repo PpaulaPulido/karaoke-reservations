@@ -1,5 +1,6 @@
 package io.karaoke.karaoke_reservations.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,7 +37,11 @@ public class Room {
     @Column(nullable = false)
     private Double pricePerHour; 
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @OneToMany(mappedBy = "room")
+    @JsonIgnore // evita error con lazy
     private Set<Reservation> reservations = new HashSet<>();
 
     @CreatedDate
@@ -47,7 +52,6 @@ public class Room {
     @Column(nullable = false)
     private OffsetDateTime lastUpdated;
 
-    // Método para compatibilidad
     public Boolean getIsAvailable() {
         return isAvailable;
     }
@@ -56,23 +60,25 @@ public class Room {
         this.isAvailable = isAvailable;
     }
 
-    // Constructor por defecto
     public Room() {
         this.isAvailable = true;
     }
 
-    // Constructor con parámetros básicos
-    public Room(String name, Integer minCapacity, Integer maxCapacity, Double pricePerHour) {
+    // Constructor con parámetros básicos 
+    public Room(String name, Integer minCapacity, Integer maxCapacity, Double pricePerHour, String description) {
         this();
         this.name = name;
         this.minCapacity = minCapacity;
         this.maxCapacity = maxCapacity;
         this.pricePerHour = pricePerHour;
+        this.description = description;
     }
 
-    // Método utilitario para validar capacidad
+    // Método para validar capacidad
     public boolean canAccommodate(Integer numberOfPeople) {
-        return numberOfPeople != null && numberOfPeople >= 2 && numberOfPeople <= this.maxCapacity;
+        return numberOfPeople != null && 
+               numberOfPeople >= this.minCapacity && 
+               numberOfPeople <= this.maxCapacity;
     }
 
     // Método para calcular precio basado en duración

@@ -1,6 +1,6 @@
 package io.karaoke.karaoke_reservations.controller;
 
-import io.karaoke.karaoke_reservations.domain.Room;
+import io.karaoke.karaoke_reservations.dto.RoomDTO;
 import io.karaoke.karaoke_reservations.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,38 +19,33 @@ public class RoomApiController {
 
     private final RoomService roomService;
 
-    /**
-     * Obtener todas las salas disponibles
-     */
+    
+    // Obtener todas las salas disponibles
     @GetMapping("/available")
-    public ResponseEntity<List<Room>> getAvailableRooms() {
+    public ResponseEntity<List<RoomDTO>> getAvailableRooms() {
         try {
-            List<Room> availableRooms = roomService.findAllAvailableRooms();
+            List<RoomDTO> availableRooms = roomService.findAllAvailableRoomsAsDTO();
             return ResponseEntity.ok(availableRooms);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    /**
-     * Obtener salas disponibles filtradas por capacidad
-     */
+    // Obtener salas disponibles filtradas por capacidad
     @GetMapping("/available-by-capacity")
-    public ResponseEntity<List<Room>> getAvailableRoomsByCapacity(@RequestParam Integer capacity) {
+    public ResponseEntity<List<RoomDTO>> getAvailableRoomsByCapacity(@RequestParam Integer capacity) {
         try {
             if (capacity == null || capacity < 2 || capacity > 15) {
                 return ResponseEntity.badRequest().build();
             }
-            List<Room> rooms = roomService.findAvailableRoomsByCapacity(capacity);
+            List<RoomDTO> rooms = roomService.findAvailableRoomsByCapacityAsDTO(capacity);
             return ResponseEntity.ok(rooms);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
-    /**
-     * Verificar disponibilidad de una sala en fecha y hora específicas
-     */
+    //  Verificar disponibilidad de una sala en fecha y hora específicas
     @GetMapping("/check-availability")
     public ResponseEntity<Map<String, Boolean>> checkRoomAvailability(
             @RequestParam Integer roomId,
@@ -71,39 +66,7 @@ public class RoomApiController {
         }
     }
 
-    /**
-     * Obtener una sala por su ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<Room> getRoomById(@PathVariable Integer id) {
-        try {
-            Room room = roomService.findById(id)
-                    .orElse(null);
-            if (room == null) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(room);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Verificar disponibilidad básica de una sala
-     */
-    @GetMapping("/{id}/available")
-    public ResponseEntity<Map<String, Boolean>> isRoomAvailable(@PathVariable Integer id) {
-        try {
-            boolean isAvailable = roomService.isRoomAvailable(id);
-            return ResponseEntity.ok(Map.of("available", isAvailable));
-        } catch (Exception e) {
-            return ResponseEntity.ok(Map.of("available", false));
-        }
-    }
-
-    /**
-     * Verificar si una sala puede acomodar cierto número de personas
-     */
+    // Verificar si una sala puede acomodar cierto número de personas
     @GetMapping("/{id}/can-accommodate")
     public ResponseEntity<Map<String, Boolean>> canRoomAccommodate(
             @PathVariable Integer id, 
