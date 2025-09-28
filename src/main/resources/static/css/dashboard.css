@@ -898,7 +898,7 @@ body {
 
 /* Botón CTA mejorado */
 .cta-button {
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    background-color: var(--primary-color);
     border: none;
     padding: 1.2rem 3rem;
     border-radius: 50px;
