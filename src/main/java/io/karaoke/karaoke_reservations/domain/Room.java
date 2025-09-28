@@ -83,9 +83,4 @@ public class Room {
                numberOfPeople <= this.maxCapacity;
     }
 
-    // Método para calcular precio basado en duración
-    public Double calculatePriceForHours(Double hours) {
-        if (hours == null || hours <= 0) return 0.0;
-        return this.pricePerHour * hours;
-    }
 }

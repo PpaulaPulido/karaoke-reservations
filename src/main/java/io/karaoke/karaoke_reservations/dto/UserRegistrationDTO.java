@@ -37,7 +37,6 @@ public class UserRegistrationDTO {
     public UserRegistrationDTO() {
     }
 
-    // Constructor para testing
     public UserRegistrationDTO(String fullName, String email, String password, String confirmPassword) {
         this.fullName = fullName;
         this.email = email;

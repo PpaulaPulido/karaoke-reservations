@@ -22,11 +22,9 @@ public class RoomDTO {
         this.pricePerHour = pricePerHour;
         this.description = description;
     }
-
-    // Constructor vacío (importante para Jackson)
+    
     public RoomDTO() {}
 
-    // Getters y Setters (todos necesarios para la serialización JSON)
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 

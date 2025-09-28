@@ -1,5 +1,6 @@
 package io.karaoke.karaoke_reservations.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ public class CreateReservationRequest {
     private Integer numberOfPeople;
     private Integer roomId;
     private List<Integer> extraIds = new ArrayList<>(); 
+    private BigDecimal totalPrice;
     
     public CreateReservationRequest() {}
     public LocalDate getReservationDate() { return reservationDate; }
@@ -31,4 +33,7 @@ public class CreateReservationRequest {
     
     public List<Integer> getExtraIds() { return extraIds; }
     public void setExtraIds(List<Integer> extraIds) { this.extraIds = extraIds; }
+
+    public BigDecimal getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
 }

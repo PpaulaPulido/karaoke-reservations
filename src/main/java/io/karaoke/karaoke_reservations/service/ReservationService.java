@@ -2,7 +2,6 @@ package io.karaoke.karaoke_reservations.service;
 
 import io.karaoke.karaoke_reservations.domain.Reservation;
 import io.karaoke.karaoke_reservations.domain.Room;
-import io.karaoke.karaoke_reservations.domain.Extra;
 import io.karaoke.karaoke_reservations.repos.ReservationRepository;
 import io.karaoke.karaoke_reservations.repos.RoomRepository;
 import io.karaoke.karaoke_reservations.repos.ExtraRepository;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -26,65 +24,19 @@ public class ReservationService {
     private final RoomRepository roomRepository;
     private final ExtraRepository extraRepository;
 
-    private static final int MIN_DURATION = 30; // 30 minutos mínimo
-    private static final int MAX_DURATION = 120; // 2 horas máximo
-    private static final int MAX_DAYS_ADVANCE = 60; // 2 meses máximo
+    private static final int MIN_DURATION = 30;
+    private static final int MAX_DURATION = 120;
+    private static final int MAX_DAYS_ADVANCE = 60;
 
     // Crear reserva
     public Reservation createReservation(Reservation reservation) {
         validateReservation(reservation);
 
-        // ✅ Asegurar que la duración se calcule
-        calculateDuration(reservation);
-
-        calculateTotalPrice(reservation);
-
-        // ✅ Marcar sala como no disponible
         Room room = reservation.getRoom();
         room.setIsAvailable(false);
         roomRepository.save(room);
 
-        Reservation savedReservation = reservationRepository.save(reservation);
-
-        System.out.println("🎉 RESERVA GUARDADA EXITOSAMENTE");
-        System.out.println("ID: " + savedReservation.getId());
-        System.out
-                .println("Extras: " + (savedReservation.getExtras() != null ? savedReservation.getExtras().size() : 0));
-
-        return savedReservation;
-    }
-
-    private void calculateDuration(Reservation reservation) {
-        if (reservation.getStartTime() != null && reservation.getEndTime() != null) {
-            long duration;
-            if (reservation.getEndTime().isBefore(reservation.getStartTime())) {
-                duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), LocalTime.MAX) +
-                        ChronoUnit.MINUTES.between(LocalTime.MIN, reservation.getEndTime()) + 1;
-            } else {
-                duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
-            }
-            reservation.setDurationMinutes((int) duration);
-        }
-    }
-
-    private void calculateTotalPrice(Reservation reservation) {
-        Room room = reservation.getRoom();
-
-        // Usar la duración ya calculada o calcularla de nuevo
-        long durationMinutes = reservation.getDurationMinutes() != null ? reservation.getDurationMinutes()
-                : ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
-
-        double hours = durationMinutes / 60.0;
-        BigDecimal roomPrice = BigDecimal.valueOf(room.getPricePerHour() * hours);
-
-        BigDecimal extrasPrice = BigDecimal.ZERO;
-        if (reservation.getExtras() != null) {
-            for (Extra extra : reservation.getExtras()) {
-                extrasPrice = extrasPrice.add(extra.getPrice());
-            }
-        }
-
-        reservation.setTotalPrice(roomPrice.add(extrasPrice));
+        return reservationRepository.save(reservation);
     }
 
     // Obtener reserva por ID
@@ -119,7 +71,6 @@ public class ReservationService {
             return false;
         }
 
-        // Usar el repository directamente
         List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime,
                 endTime);
         return conflicts.isEmpty();
@@ -147,10 +98,6 @@ public class ReservationService {
             // Horario normal
             duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
         }
-
-        System.out.println("Duración calculada CORREGIDA: " + duration + " minutos");
-        System.out.println("Hora inicio: " + reservation.getStartTime());
-        System.out.println("Hora fin: " + reservation.getEndTime());
 
         if (duration < MIN_DURATION) {
             throw new IllegalArgumentException("Duración mínima: 30 minutos");

@@ -40,7 +40,7 @@ public class ReservationController {
             model.addAttribute("user", user);
         }
 
-        return "reservations"; // Asegúrate de que este template existe
+        return "reservations";
     }
 
     // Mostrar formulario de nueva reserva
@@ -63,16 +63,6 @@ public class ReservationController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
-            // DEBUG: Log los datos recibidos
-            System.out.println("=== DATOS RECIBIDOS ===");
-            System.out.println("Fecha: " + request.getReservationDate());
-            System.out.println("Hora inicio: " + request.getStartTime());
-            System.out.println("Hora fin: " + request.getEndTime());
-            System.out.println("Personas: " + request.getNumberOfPeople());
-            System.out.println("Sala ID: " + request.getRoomId());
-            System.out.println("Extras IDs: " + (request.getExtraIds() != null ? request.getExtraIds() : "null"));
-            System.out.println("======================");
-
             // Obtener usuario autenticado
             String email = authentication.getName();
             User user = userService.findByEmail(email);
@@ -85,7 +75,7 @@ public class ReservationController {
             // Validar campos requeridos
             if (request.getReservationDate() == null || request.getStartTime() == null ||
                     request.getEndTime() == null || request.getNumberOfPeople() == null ||
-                    request.getRoomId() == null) {
+                    request.getRoomId() == null || request.getTotalPrice() == null) { // Validar total también
                 redirectAttributes.addFlashAttribute("error", "Todos los campos obligatorios deben ser completados");
                 return "redirect:/reservations/new";
             }
@@ -96,13 +86,13 @@ public class ReservationController {
             reservation.setStartTime(request.getStartTime());
             reservation.setEndTime(request.getEndTime());
             reservation.setNumberOfPeople(request.getNumberOfPeople());
+            reservation.setTotalPrice(request.getTotalPrice());
 
             // Establecer relaciones
             reservation.setUser(user);
             reservation.setRoom(roomService.findById(request.getRoomId())
                     .orElseThrow(() -> new IllegalArgumentException("Sala no encontrada")));
 
-            // ✅ CORREGIDO: Procesar extras
             if (request.getExtraIds() != null && !request.getExtraIds().isEmpty()) {
                 Set<Extra> extrasSet = new HashSet<>();
 
@@ -114,24 +104,16 @@ public class ReservationController {
                 }
 
                 reservation.setExtras(extrasSet);
-                System.out.println("Extras asignados: " + extrasSet.size());
             }
 
             // Guardar reserva
             Reservation savedReservation = reservationService.createReservation(reservation);
 
-            System.out.println("✅ Reserva guardada exitosamente con ID: " + savedReservation.getId());
-
             redirectAttributes.addFlashAttribute("success",
                     "Reserva creada exitosamente para el " + savedReservation.getReservationDate());
             return "redirect:/reservations/my-reservations?success=true";
 
-        } catch (IllegalArgumentException e) {
-            System.err.println("❌ Error de validación: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/reservations/new";
         } catch (Exception e) {
-            System.err.println("❌ Error general: " + e.getMessage());
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error",
                     "Error al crear la reserva: " + e.getMessage());

@@ -1,6 +1,7 @@
 package io.karaoke.karaoke_reservations.service;
 
 import io.karaoke.karaoke_reservations.domain.Extra;
+import io.karaoke.karaoke_reservations.dto.ExtraDTO;
 import io.karaoke.karaoke_reservations.repos.ExtraRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,16 @@ public class ExtraService {
 
     private final ExtraRepository extraRepository;
 
-    public List<Extra> findAll() {
-        return extraRepository.findAll();
+    // Método que retorna DTOs en lugar de entidades
+    public List<ExtraDTO> findAll() {
+        return extraRepository.findAll().stream()
+                .map(ExtraDTO::new) 
+                .collect(Collectors.toList());
     }
 
-    public List<Extra> findByType(String type) {
-        return extraRepository.findAll().stream()
-                .filter(extra -> extra.getType().equalsIgnoreCase(type))
+    public List<ExtraDTO> findByType(String type) {
+        return extraRepository.findByTypeIgnoreCase(type).stream()
+                .map(ExtraDTO::new)
                 .collect(Collectors.toList());
     }
 
@@ -35,15 +39,10 @@ public class ExtraService {
         return extraRepository.findAllById(ids);
     }
 
-    public Extra save(Extra extra) {
-        return extraRepository.save(extra);
-    }
-
-    public void deleteById(Integer id) {
-        extraRepository.deleteById(id);
-    }
-
-    public boolean existsById(Integer id) {
-        return extraRepository.existsById(id);
+    public List<String> findDistinctTypes() {
+        return extraRepository.findAll().stream()
+                .map(Extra::getType)
+                .distinct()
+                .collect(Collectors.toList()); 
     }
 }

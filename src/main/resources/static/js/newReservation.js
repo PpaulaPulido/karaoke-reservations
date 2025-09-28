@@ -25,6 +25,7 @@ class ReservationApp {
         window.summaryReservation = this.summaryReservation;
 
         await this.roomManager.loadAvailableRooms();
+        await this.extrasManager.loadExtras();
 
         this.setupRoomFilters();
         this.setupFormValidation();
@@ -132,7 +133,6 @@ class ReservationApp {
         if (modal) {
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            document.body.style.overflow = 'hidden';
         }
     }
 
@@ -176,7 +176,6 @@ class ReservationApp {
         if (modal) {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
-            document.body.style.overflow = 'auto';
         }
     }
 
@@ -189,8 +188,8 @@ class ReservationApp {
         confirmBtn.disabled = true;
 
         try {
-            // ✅ AGREGAR: Asegurar que los extras se añaden antes de enviar
             this.addExtrasToForm();
+            this.addTotalToForm(); 
             await this.submitForm();
         } catch (error) {
             console.error('Error confirmando reserva:', error);
@@ -206,91 +205,157 @@ class ReservationApp {
         const form = document.getElementById('reservation-form');
         const submitBtn = form.querySelector('button[type="submit"]');
 
+        if (!form || !submitBtn) {
+            this.showGeneralError('Error interno del sistema. Por favor, recarga la página.');
+            return;
+        }
+
         // Mostrar estado de carga
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         submitBtn.disabled = true;
 
         try {
-            // ✅ AGREGAR: Asegurar que los extras se añaden al formulario
-            this.addExtrasToForm();
+            // 1. Verificar que los datos necesarios estén presentes
+            const formData = this.validator.formData;
+            const selectedRoom = this.roomManager.getSelectedRoom();
 
-            // Preparar datos del formulario
-            const formData = new FormData(form);
-
-            // ✅ DEBUG: Ver qué datos se están enviando
-            console.log('Datos del formulario:');
-            for (let [key, value] of formData.entries()) {
-                console.log(key + ': ' + value);
+            if (!formData.reservationDate || !formData.startTime || !formData.endTime ||
+                !formData.numberOfPeople || !selectedRoom) {
+                this.showGeneralError('Faltan datos requeridos para la reserva.');
+                return;
             }
 
+            // 2. Añadir total y extras al formulario
+            this.addTotalToForm();
+            this.addExtrasToForm();
+
+            // 3. Verificar que el total se haya establecido correctamente
+            const totalInput = document.getElementById('totalPriceInput');
+            if (!totalInput || !totalInput.value || totalInput.value === '0') {
+                this.showGeneralError('Error en el cálculo del total. Por favor, verifica los datos.');
+                return;
+            }
+
+            // 4. Preparar datos del formulario
+            const formDataToSend = new FormData(form);
+
+            // 5. Enviar la solicitud
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: formData,
+                body: formDataToSend,
                 headers: {
                     'Accept': 'text/html, application/xhtml+xml',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
+            // 6. Procesar respuesta
             if (response.ok) {
-                // ✅ Redirección exitosa
+                console.log('Reserva creada exitosamente');
                 window.location.href = '/reservations/my-reservations?success=true';
+
             } else if (response.status === 400) {
-                // Manejar errores de validación
+                // Error de validación del servidor
                 try {
-                    const errorData = await response.json();
-                    this.displayServerErrors(errorData);
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        this.displayServerErrors(errorData);
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Error 400 - Respuesta HTML:', errorText);
+                        this.showGeneralError('Error en los datos enviados. Por favor, verifica la información.');
+                    }
                 } catch (e) {
-                    this.showGeneralError('Error en la validación de datos');
+                    console.error('Error procesando respuesta 400:', e);
+                    this.showGeneralError('Error en la validación de datos del servidor.');
                 }
+
+            } else if (response.status === 500) {
+                // Error interno del servidor
+                this.showGeneralError('Error interno del servidor. Por favor, intenta más tarde.');
+
             } else {
-                throw new Error('Error del servidor: ' + response.status);
+                // Otros errores
+                throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
             }
+
         } catch (error) {
-            console.error('Error submitting form:', error);
-            this.showGeneralError('Error al crear la reserva. Por favor, intenta nuevamente.');
+            console.error('Error enviando formulario:', error);
+
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                this.showGeneralError('Error de conexión. Verifica tu internet e intenta nuevamente.');
+            } else {
+                this.showGeneralError('Error al crear la reserva. Por favor, intenta nuevamente.');
+            }
+
         } finally {
-            // ✅ Asegurar que el botón se restaura siempre
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
             this.closeConfirmationModal();
         }
     }
 
-    addTotalToForm() {
-        const form = document.getElementById('reservation-form');
-        const total = this.summaryReservation.getCalculatedTotal();
+    // Método auxiliar para mostrar errores del servidor
+    displayServerErrors(errorData) {
+        console.error('Errores del servidor:', errorData);
 
-        // Limpiar input anterior
-        document.querySelectorAll('input[name="totalPrice"]').forEach(input => input.remove());
-
-        // Agregar input con el total
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'totalPrice';
-        input.value = total;
-        form.appendChild(input);
+        if (errorData.errors) {
+            // Múltiples errores de validación
+            const errorMessages = Object.values(errorData.errors).flat();
+            this.showGeneralError('Errores de validación: ' + errorMessages.join(', '));
+        } else if (errorData.message) {
+            // Error único
+            this.showGeneralError(errorData.message);
+        } else {
+            this.showGeneralError('Error desconocido del servidor.');
+        }
     }
 
+    // Método para añadir el total
+    addTotalToForm() {
+        try {
+            const total = this.summaryReservation.getCalculatedTotal();
+            const totalInput = document.getElementById('totalPriceInput');
+
+            if (totalInput) {
+                totalInput.value = total;
+            } else {
+                const form = document.getElementById('reservation-form');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'totalPrice';
+                input.id = 'totalPriceInput';
+                input.value = total;
+                form.appendChild(input);
+            }
+        } catch (error) {
+            console.error('Error en addTotalToForm:', error);
+        }
+    }
+
+    // Método para añadir extras
     addExtrasToForm() {
-        const form = document.getElementById('reservation-form');
-        const selectedExtras = this.extrasManager.getSelectedExtras();
+        try {
+            const form = document.getElementById('reservation-form');
+            const selectedExtras = this.extrasManager.getSelectedExtras();
 
-        // Limpiar inputs anteriores de extras
-        const existingExtraInputs = form.querySelectorAll('input[name="extraIds"]');
-        existingExtraInputs.forEach(input => input.remove());
+            // Limpiar inputs anteriores de extras
+            const existingExtraInputs = form.querySelectorAll('input[name="extraIds"]');
+            existingExtraInputs.forEach(input => input.remove());
 
-        // Agregar inputs para cada extra
-        selectedExtras.forEach(extra => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'extraIds'; // ✅ debe coincidir con el DTO
-            input.value = extra.id;
-            form.appendChild(input);
-        });
-
-        console.log('Extras añadidos al formulario:', selectedExtras.map(e => e.id));
+            // Agregar inputs para cada extra
+            selectedExtras.forEach(extra => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'extraIds';
+                input.value = extra.id;
+                form.appendChild(input);
+            });
+        } catch (error) {
+            console.error('Error en addExtrasToForm:', error);
+        }
     }
 
     formatDate(dateString) {
@@ -336,7 +401,6 @@ class ReservationApp {
     }
 }
 
-// Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
     new ReservationApp();
 });

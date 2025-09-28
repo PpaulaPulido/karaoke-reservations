@@ -75,9 +75,6 @@ public class UserService {
             existingUser.setPhoneNumber(userDetails.getPhoneNumber().trim());
         }
 
-        // El email no se puede cambiar para evitar conflictos
-        // El isAdmin solo lo puede cambiar un administrador (se maneja en otro método)
-
         return userRepository.save(existingUser);
     }
 

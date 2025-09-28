@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final ReservationRepository reservationRepository; // ✅ CORREGIDO: ReservationRepository, no ReservationService
+    private final ReservationRepository reservationRepository; 
 
     public List<RoomDTO> findAllAvailableRoomsAsDTO() {
         List<Room> rooms = roomRepository.findByIsAvailableTrue();
@@ -61,9 +61,8 @@ public class RoomService {
             return false;
         }
         
-        // ✅ CORREGIDO: Usar reservationRepository directamente
         List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime, endTime);
-        return conflicts.isEmpty(); // ✅ CORREGIDO: conflicts es List, no boolean
+        return conflicts.isEmpty(); 
     }
 
     public boolean canRoomAccommodate(Integer roomId, Integer numberOfPeople) {
@@ -91,7 +90,7 @@ public class RoomService {
         return roomRepository.findAll();
     }
 
-    // ✅ MÉTODOS ADICIONALES ÚTILES
+
     public List<Room> findOccupiedRooms() {
         return roomRepository.findByIsAvailableFalse();
     }

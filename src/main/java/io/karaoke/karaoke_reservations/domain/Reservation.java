@@ -156,13 +156,12 @@ public class Reservation {
         this.lastUpdated = lastUpdated;
     }
 
-    // Método para calcular la duración automáticamente
-    // En Reservation.java
+    // Método para calcular la duración automáticamente y el precio total
     @PrePersist
     @PreUpdate
-    private void calculateDuration() {
+    private void calculateDurationAndPrice() {
+        // 1. Calcular duración
         if (startTime != null && endTime != null) {
-            // ✅ Misma lógica corregida
             if (endTime.isBefore(startTime)) {
                 // Pasa de medianoche
                 this.durationMinutes = (int) (ChronoUnit.MINUTES.between(startTime, LocalTime.MAX) +
@@ -172,10 +171,27 @@ public class Reservation {
                 this.durationMinutes = (int) ChronoUnit.MINUTES.between(startTime, endTime);
             }
         }
+
+        // 2. Calcular precio
+        if (this.totalPrice == null && this.room != null && this.durationMinutes != null) {
+
+            double hours = this.durationMinutes / 60.0;
+            BigDecimal roomPrice = BigDecimal.valueOf(this.room.getPricePerHour() * hours);
+
+            // Calcular precio de extras
+            BigDecimal extrasPrice = BigDecimal.ZERO;
+            if (this.extras != null && !this.extras.isEmpty()) {
+                for (Extra extra : this.extras) {
+                    extrasPrice = extrasPrice.add(extra.getPrice());
+                }
+            }
+
+            // Total
+            this.totalPrice = roomPrice.add(extrasPrice);
+        }
     }
 
     // Método para agregar extra
-    // En Reservation.java, asegúrate de que el método addExtra sea así:
     public void addExtra(Extra extra) {
         if (this.extras == null) {
             this.extras = new HashSet<>();
@@ -192,4 +208,5 @@ public class Reservation {
     public Double getDurationHours() {
         return durationMinutes != null ? durationMinutes / 60.0 : 0.0;
     }
+
 }
