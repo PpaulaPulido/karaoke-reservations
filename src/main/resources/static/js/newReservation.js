@@ -17,7 +17,7 @@ class ReservationApp {
         this.roomManager = new RoomManager();
         this.extrasManager = new ExtrasManager();
         this.summaryReservation = new SummaryReservation(this.validator, this.roomManager, this.extrasManager);
-        
+
         // Hacer disponibles globalmente
         window.realTimeValidator = this.validator;
         window.roomManager = this.roomManager;
@@ -26,10 +26,10 @@ class ReservationApp {
 
         await this.roomManager.loadAvailableRooms();
 
-        this.setupRoomFilters(); 
+        this.setupRoomFilters();
         this.setupFormValidation();
         this.setupModalEvents();
-        
+
         console.log('Sistema de reservas inicializado correctamente');
     }
 
@@ -104,7 +104,7 @@ class ReservationApp {
     setupFormValidation() {
         const form = document.getElementById('reservation-form');
         const submitBtn = document.getElementById('submit-btn');
-        
+
         if (form && submitBtn) {
             submitBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -117,7 +117,7 @@ class ReservationApp {
         // Validar formulario antes de mostrar el modal
         const isBasicFormValid = this.validator.validateCompleteForm();
         const isRoomSelected = this.roomManager.validateRoomSelection();
-        
+
         if (!isBasicFormValid || !isRoomSelected) {
             this.showGeneralError('Por favor, completa todos los campos requeridos y selecciona una sala.');
             this.scrollToFirstError();
@@ -150,8 +150,8 @@ class ReservationApp {
                 <strong>Fecha:</strong> ${formData.reservationDate ? this.formatDate(formData.reservationDate) : '-'}
             </div>
             <div class="confirmation-item">
-                <strong>Horario:</strong> ${formData.startTime && formData.endTime ? 
-                    `${this.formatTime(formData.startTime)} - ${this.formatTime(formData.endTime)}` : '-'}
+                <strong>Horario:</strong> ${formData.startTime && formData.endTime ?
+                `${this.formatTime(formData.startTime)} - ${this.formatTime(formData.endTime)}` : '-'}
             </div>
             <div class="confirmation-item">
                 <strong>Personas:</strong> ${formData.numberOfPeople || '-'}
@@ -160,8 +160,8 @@ class ReservationApp {
                 <strong>Sala:</strong> ${selectedRoom ? selectedRoom.name : '-'}
             </div>
             <div class="confirmation-item">
-                <strong>Extras:</strong> ${selectedExtras.length > 0 ? 
-                    selectedExtras.map(extra => extra.name).join(', ') : 'Ninguno'}
+                <strong>Extras:</strong> ${selectedExtras.length > 0 ?
+                selectedExtras.map(extra => extra.name).join(', ') : 'Ninguno'}
             </div>
             <div class="confirmation-item total">
                 <strong>Total:</strong> $${total.toLocaleString()}
@@ -176,24 +176,26 @@ class ReservationApp {
         if (modal) {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
-            document.body.style.overflow = 'auto'; 
+            document.body.style.overflow = 'auto';
         }
     }
 
     async confirmReservation() {
         const confirmBtn = document.getElementById('confirm-reservation');
         const originalText = confirmBtn.innerHTML;
-        
+
         // Mostrar estado de carga
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         confirmBtn.disabled = true;
 
         try {
+            // ✅ AGREGAR: Asegurar que los extras se añaden antes de enviar
+            this.addExtrasToForm();
             await this.submitForm();
         } catch (error) {
             console.error('Error confirmando reserva:', error);
             this.showGeneralError('Error al crear la reserva. Por favor, intenta nuevamente.');
-            
+        } finally {
             // Restaurar botón
             confirmBtn.innerHTML = originalText;
             confirmBtn.disabled = false;
@@ -202,35 +204,67 @@ class ReservationApp {
 
     async submitForm() {
         const form = document.getElementById('reservation-form');
-        
-        // Agregar datos al formulario
-        this.addTotalToForm();
-        this.addExtrasToForm();
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // Mostrar estado de carga
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        submitBtn.disabled = true;
 
         try {
+            // ✅ AGREGAR: Asegurar que los extras se añaden al formulario
+            this.addExtrasToForm();
+
+            // Preparar datos del formulario
+            const formData = new FormData(form);
+
+            // ✅ DEBUG: Ver qué datos se están enviando
+            console.log('Datos del formulario:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ': ' + value);
+            }
+
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: new FormData(form)
+                body: formData,
+                headers: {
+                    'Accept': 'text/html, application/xhtml+xml',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
 
             if (response.ok) {
-                window.location.href = '/reservations?success=true';
+                // ✅ Redirección exitosa
+                window.location.href = '/reservations/my-reservations?success=true';
+            } else if (response.status === 400) {
+                // Manejar errores de validación
+                try {
+                    const errorData = await response.json();
+                    this.displayServerErrors(errorData);
+                } catch (e) {
+                    this.showGeneralError('Error en la validación de datos');
+                }
             } else {
-                throw new Error('Error del servidor');
+                throw new Error('Error del servidor: ' + response.status);
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            throw error;
+            this.showGeneralError('Error al crear la reserva. Por favor, intenta nuevamente.');
+        } finally {
+            // ✅ Asegurar que el botón se restaura siempre
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            this.closeConfirmationModal();
         }
     }
 
     addTotalToForm() {
         const form = document.getElementById('reservation-form');
         const total = this.summaryReservation.getCalculatedTotal();
-        
+
         // Limpiar input anterior
         document.querySelectorAll('input[name="totalPrice"]').forEach(input => input.remove());
-        
+
         // Agregar input con el total
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -242,18 +276,21 @@ class ReservationApp {
     addExtrasToForm() {
         const form = document.getElementById('reservation-form');
         const selectedExtras = this.extrasManager.getSelectedExtras();
-        
-        // Limpiar inputs anteriores
-        document.querySelectorAll('input[name="extraIds"]').forEach(input => input.remove());
-        
+
+        // Limpiar inputs anteriores de extras
+        const existingExtraInputs = form.querySelectorAll('input[name="extraIds"]');
+        existingExtraInputs.forEach(input => input.remove());
+
         // Agregar inputs para cada extra
         selectedExtras.forEach(extra => {
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = 'extraIds';
+            input.name = 'extraIds'; // ✅ debe coincidir con el DTO
             input.value = extra.id;
             form.appendChild(input);
         });
+
+        console.log('Extras añadidos al formulario:', selectedExtras.map(e => e.id));
     }
 
     formatDate(dateString) {
@@ -291,7 +328,7 @@ class ReservationApp {
             errorElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        
+
         const roomError = document.getElementById('room-error');
         if (roomError && roomError.style.display === 'block') {
             roomError.scrollIntoView({ behavior: 'smooth', block: 'center' });

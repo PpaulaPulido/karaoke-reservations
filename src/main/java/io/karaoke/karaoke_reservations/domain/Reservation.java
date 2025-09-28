@@ -10,9 +10,11 @@ import java.util.HashSet;
 import java.util.Set;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "reservations")
+@EntityListeners(AuditingEntityListener.class)
 public class Reservation {
 
     @Id
@@ -46,11 +48,7 @@ public class Reservation {
     private Room room;
 
     @ManyToMany
-    @JoinTable(
-        name = "reservation_extras",
-        joinColumns = @JoinColumn(name = "reservation_id"),
-        inverseJoinColumns = @JoinColumn(name = "extra_id")
-    )
+    @JoinTable(name = "reservation_extras", joinColumns = @JoinColumn(name = "reservation_id"), inverseJoinColumns = @JoinColumn(name = "extra_id"))
     private Set<Extra> extras = new HashSet<>();
 
     @CreatedDate
@@ -62,57 +60,132 @@ public class Reservation {
     private OffsetDateTime lastUpdated;
 
     // Getters y Setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Integer getId() {
+        return id;
+    }
 
-    public LocalDate getReservationDate() { return reservationDate; }
-    public void setReservationDate(LocalDate reservationDate) { this.reservationDate = reservationDate; }
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-    public LocalTime getStartTime() { return startTime; }
-    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+    public LocalDate getReservationDate() {
+        return reservationDate;
+    }
 
-    public LocalTime getEndTime() { return endTime; }
-    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+    public void setReservationDate(LocalDate reservationDate) {
+        this.reservationDate = reservationDate;
+    }
 
-    public Integer getDurationMinutes() { return durationMinutes; }
-    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
+    public LocalTime getStartTime() {
+        return startTime;
+    }
 
-    public Integer getNumberOfPeople() { return numberOfPeople; }
-    public void setNumberOfPeople(Integer numberOfPeople) { this.numberOfPeople = numberOfPeople; }
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
 
-    public BigDecimal getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
+    public LocalTime getEndTime() {
+        return endTime;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
 
-    public Room getRoom() { return room; }
-    public void setRoom(Room room) { this.room = room; }
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
 
-    public Set<Extra> getExtras() { return extras; }
-    public void setExtras(Set<Extra> extras) { this.extras = extras; }
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
 
-    public OffsetDateTime getDateCreated() { return dateCreated; }
-    public void setDateCreated(OffsetDateTime dateCreated) { this.dateCreated = dateCreated; }
+    public Integer getNumberOfPeople() {
+        return numberOfPeople;
+    }
 
-    public OffsetDateTime getLastUpdated() { return lastUpdated; }
-    public void setLastUpdated(OffsetDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
+    public void setNumberOfPeople(Integer numberOfPeople) {
+        this.numberOfPeople = numberOfPeople;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    public Set<Extra> getExtras() {
+        return extras;
+    }
+
+    public void setExtras(Set<Extra> extras) {
+        this.extras = extras;
+    }
+
+    public OffsetDateTime getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(OffsetDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public OffsetDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(OffsetDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
 
     // Método para calcular la duración automáticamente
+    // En Reservation.java
     @PrePersist
     @PreUpdate
     private void calculateDuration() {
         if (startTime != null && endTime != null) {
-            this.durationMinutes = (int) ChronoUnit.MINUTES.between(startTime, endTime);
+            // ✅ Misma lógica corregida
+            if (endTime.isBefore(startTime)) {
+                // Pasa de medianoche
+                this.durationMinutes = (int) (ChronoUnit.MINUTES.between(startTime, LocalTime.MAX) +
+                        ChronoUnit.MINUTES.between(LocalTime.MIN, endTime) + 1);
+            } else {
+                // Horario normal
+                this.durationMinutes = (int) ChronoUnit.MINUTES.between(startTime, endTime);
+            }
         }
     }
 
     // Método para agregar extra
+    // En Reservation.java, asegúrate de que el método addExtra sea así:
     public void addExtra(Extra extra) {
         if (this.extras == null) {
             this.extras = new HashSet<>();
         }
         this.extras.add(extra);
+
+        if (extra.getReservations() == null) {
+            extra.setReservations(new HashSet<>());
+        }
+        extra.getReservations().add(this);
     }
 
     // Método para calcular horas

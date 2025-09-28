@@ -10,6 +10,8 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
 
     // Encontrar salas disponibles
     List<Room> findByIsAvailableTrue();
+    
+    List<Room> findByIsAvailableFalse();
 
     // Encontrar salas por capacidad mínima requerida
     List<Room> findByIsAvailableTrueAndMaxCapacityGreaterThanEqual(Integer minCapacity);
@@ -19,4 +21,6 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
 
     // Encontrar sala por nombre exacto
     Optional<Room> findByNameIgnoreCase(String name);
+
+
 }

@@ -7,9 +7,11 @@ import java.util.HashSet;
 import java.util.Set;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "extras")
+@EntityListeners(AuditingEntityListener.class)
 public class Extra {
 
     @Id
@@ -28,9 +30,6 @@ public class Extra {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private Boolean isAvailable = true;
-
     @ManyToMany(mappedBy = "extras")
     private Set<Reservation> reservations = new HashSet<>();
 
@@ -42,7 +41,9 @@ public class Extra {
     @Column(nullable = false)
     private OffsetDateTime lastUpdated;
 
-    // Getters y Setters
+    public Extra() {
+    }
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -58,9 +59,6 @@ public class Extra {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
-    public Boolean getIsAvailable() { return isAvailable; }
-    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
-
     public Set<Reservation> getReservations() { return reservations; }
     public void setReservations(Set<Reservation> reservations) { this.reservations = reservations; }
 
@@ -70,26 +68,14 @@ public class Extra {
     public OffsetDateTime getLastUpdated() { return lastUpdated; }
     public void setLastUpdated(OffsetDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
 
-    // Método utilitario para verificar disponibilidad
-    public boolean isAvailable() {
-        return Boolean.TRUE.equals(isAvailable);
-    }
-
-    // Método utilitario para formatear precio
-    public String getFormattedPrice() {
-        return "$" + price.toString();
-    }
-
-    // Constructor por defecto
-    public Extra() {
-        this.isAvailable = true;
-    }
-
-    // Constructor con parámetros básicos
-    public Extra(String name, String type, BigDecimal price) {
-        this();
+    public Extra(String name, String type, String description, BigDecimal price) {
         this.name = name;
         this.type = type;
+        this.description = description;
         this.price = price;
+    }
+
+    public Extra(String name, String type, BigDecimal price) {
+        this(name, type, "", price);
     }
 }

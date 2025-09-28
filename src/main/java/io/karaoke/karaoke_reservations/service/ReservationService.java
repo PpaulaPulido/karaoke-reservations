@@ -33,8 +33,58 @@ public class ReservationService {
     // Crear reserva
     public Reservation createReservation(Reservation reservation) {
         validateReservation(reservation);
+
+        // ✅ Asegurar que la duración se calcule
+        calculateDuration(reservation);
+
         calculateTotalPrice(reservation);
-        return reservationRepository.save(reservation);
+
+        // ✅ Marcar sala como no disponible
+        Room room = reservation.getRoom();
+        room.setIsAvailable(false);
+        roomRepository.save(room);
+
+        Reservation savedReservation = reservationRepository.save(reservation);
+
+        System.out.println("🎉 RESERVA GUARDADA EXITOSAMENTE");
+        System.out.println("ID: " + savedReservation.getId());
+        System.out
+                .println("Extras: " + (savedReservation.getExtras() != null ? savedReservation.getExtras().size() : 0));
+
+        return savedReservation;
+    }
+
+    private void calculateDuration(Reservation reservation) {
+        if (reservation.getStartTime() != null && reservation.getEndTime() != null) {
+            long duration;
+            if (reservation.getEndTime().isBefore(reservation.getStartTime())) {
+                duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), LocalTime.MAX) +
+                        ChronoUnit.MINUTES.between(LocalTime.MIN, reservation.getEndTime()) + 1;
+            } else {
+                duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
+            }
+            reservation.setDurationMinutes((int) duration);
+        }
+    }
+
+    private void calculateTotalPrice(Reservation reservation) {
+        Room room = reservation.getRoom();
+
+        // Usar la duración ya calculada o calcularla de nuevo
+        long durationMinutes = reservation.getDurationMinutes() != null ? reservation.getDurationMinutes()
+                : ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
+
+        double hours = durationMinutes / 60.0;
+        BigDecimal roomPrice = BigDecimal.valueOf(room.getPricePerHour() * hours);
+
+        BigDecimal extrasPrice = BigDecimal.ZERO;
+        if (reservation.getExtras() != null) {
+            for (Extra extra : reservation.getExtras()) {
+                extrasPrice = extrasPrice.add(extra.getPrice());
+            }
+        }
+
+        reservation.setTotalPrice(roomPrice.add(extrasPrice));
     }
 
     // Obtener reserva por ID
@@ -64,16 +114,15 @@ public class ReservationService {
 
     // Verificar disponibilidad
     public boolean isRoomAvailable(Integer roomId, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime, endTime);
-        return conflicts.isEmpty();
-    }
-
-    // Eliminar reserva
-    public void deleteReservation(Integer reservationId) {
-        if (!reservationRepository.existsById(reservationId)) {
-            throw new IllegalArgumentException("Reserva no encontrada");
+        Optional<Room> roomOpt = roomRepository.findById(roomId);
+        if (roomOpt.isEmpty() || !roomOpt.get().getIsAvailable()) {
+            return false;
         }
-        reservationRepository.deleteById(reservationId);
+
+        // Usar el repository directamente
+        List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime,
+                endTime);
+        return conflicts.isEmpty();
     }
 
     // Validaciones de reserva
@@ -90,7 +139,19 @@ public class ReservationService {
         }
 
         // Validar duración
-        long duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
+        long duration;
+        if (reservation.getEndTime().isBefore(reservation.getStartTime())) {
+            duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), LocalTime.MAX) +
+                    ChronoUnit.MINUTES.between(LocalTime.MIN, reservation.getEndTime()) + 1;
+        } else {
+            // Horario normal
+            duration = ChronoUnit.MINUTES.between(reservation.getStartTime(), reservation.getEndTime());
+        }
+
+        System.out.println("Duración calculada CORREGIDA: " + duration + " minutos");
+        System.out.println("Hora inicio: " + reservation.getStartTime());
+        System.out.println("Hora fin: " + reservation.getEndTime());
+
         if (duration < MIN_DURATION) {
             throw new IllegalArgumentException("Duración mínima: 30 minutos");
         }
@@ -112,29 +173,63 @@ public class ReservationService {
         }
 
         if (reservation.getNumberOfPeople() > room.getMaxCapacity()) {
-            throw new IllegalArgumentException("La sala no tiene capacidad para " + reservation.getNumberOfPeople() + " personas");
+            throw new IllegalArgumentException(
+                    "La sala no tiene capacidad para " + reservation.getNumberOfPeople() + " personas");
         }
 
-        // Validar conflicto de horarios
-        if (!isRoomAvailable(room.getId(), reservation.getReservationDate(), reservation.getStartTime(), reservation.getEndTime())) {
+        List<Reservation> roomConflicts = reservationRepository.findConflictingReservations(
+                room.getId(),
+                reservation.getReservationDate(),
+                reservation.getStartTime(),
+                reservation.getEndTime());
+
+        if (!roomConflicts.isEmpty()) {
             throw new IllegalArgumentException("La sala no está disponible en el horario seleccionado");
         }
-    }
 
-    // Calcular precio total
-    private void calculateTotalPrice(Reservation reservation) {
-        Room room = reservation.getRoom();
-        double hours = reservation.getDurationMinutes() / 60.0;
-        BigDecimal roomPrice = BigDecimal.valueOf(room.getPricePerHour() * hours);
-
-        BigDecimal extrasPrice = BigDecimal.ZERO;
-        if (reservation.getExtras() != null) {
-            for (Extra extra : reservation.getExtras()) {
-                extrasPrice = extrasPrice.add(extra.getPrice());
-            }
+        if (hasUserConflictingReservations(reservation.getUser().getId(), reservation.getReservationDate(),
+                reservation.getStartTime(), reservation.getEndTime())) {
+            throw new IllegalArgumentException("Ya tienes una reserva en ese horario");
         }
 
-        reservation.setTotalPrice(roomPrice.add(extrasPrice));
+    }
+
+    boolean hasUserConflictingReservations(Integer userId, LocalDate date, LocalTime startTime,
+            LocalTime endTime) {
+        List<Reservation> conflicts = reservationRepository.findConflictingReservationsByUser(userId, date, startTime,
+                endTime);
+        return !conflicts.isEmpty();
+    }
+
+    public void deleteReservation(Integer reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        // Liberar la sala
+        Room room = reservation.getRoom();
+        room.setIsAvailable(true);
+        roomRepository.save(room);
+
+        reservationRepository.deleteById(reservationId);
+    }
+
+    public void cancelReservation(Integer reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        // Solo permitir cancelar reservas futuras
+        if (reservation.getReservationDate().isBefore(LocalDate.now()) ||
+                (reservation.getReservationDate().equals(LocalDate.now()) &&
+                        reservation.getStartTime().isBefore(LocalTime.now()))) {
+            throw new IllegalArgumentException("No se puede cancelar una reserva pasada");
+        }
+
+        // Liberar la sala
+        Room room = reservation.getRoom();
+        room.setIsAvailable(true);
+        roomRepository.save(room);
+
+        reservationRepository.delete(reservation);
     }
 
     // Método simple para obtener estadísticas
@@ -145,4 +240,5 @@ public class ReservationService {
     public long getReservationCountByUser(Integer userId) {
         return reservationRepository.findByUserId(userId).size();
     }
+
 }

@@ -1,7 +1,9 @@
 package io.karaoke.karaoke_reservations.service;
 
+import io.karaoke.karaoke_reservations.domain.Reservation;
 import io.karaoke.karaoke_reservations.domain.Room;
 import io.karaoke.karaoke_reservations.dto.RoomDTO;
+import io.karaoke.karaoke_reservations.repos.ReservationRepository;
 import io.karaoke.karaoke_reservations.repos.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final ReservationRepository reservationRepository; // ✅ CORREGIDO: ReservationRepository, no ReservationService
 
     public List<RoomDTO> findAllAvailableRoomsAsDTO() {
         List<Room> rooms = roomRepository.findByIsAvailableTrue();
@@ -54,7 +57,13 @@ public class RoomService {
 
     public boolean isRoomAvailable(Integer roomId, LocalDate date, LocalTime startTime, LocalTime endTime) {
         Optional<Room> roomOpt = roomRepository.findById(roomId);
-        return roomOpt.isPresent() && roomOpt.get().getIsAvailable();
+        if (roomOpt.isEmpty() || !roomOpt.get().getIsAvailable()) {
+            return false;
+        }
+        
+        // ✅ CORREGIDO: Usar reservationRepository directamente
+        List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime, endTime);
+        return conflicts.isEmpty(); // ✅ CORREGIDO: conflicts es List, no boolean
     }
 
     public boolean canRoomAccommodate(Integer roomId, Integer numberOfPeople) {
@@ -65,5 +74,36 @@ public class RoomService {
 
     public Optional<Room> findById(Integer id) {
         return roomRepository.findById(id);
+    }
+
+    public Room save(Room room) {
+        return roomRepository.save(room);
+    }
+
+    public void updateRoomAvailability(Integer roomId, boolean isAvailable) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Sala no encontrada"));
+        room.setIsAvailable(isAvailable);
+        roomRepository.save(room);
+    }
+
+    public List<Room> findAll() {
+        return roomRepository.findAll();
+    }
+
+    // ✅ MÉTODOS ADICIONALES ÚTILES
+    public List<Room> findOccupiedRooms() {
+        return roomRepository.findByIsAvailableFalse();
+    }
+
+    public List<Room> findAvailableRooms() {
+        return roomRepository.findByIsAvailableTrue();
+    }
+
+    public void releaseRoom(Integer roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Sala no encontrada"));
+        room.setIsAvailable(true);
+        roomRepository.save(room);
     }
 }
