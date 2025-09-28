@@ -28,15 +28,63 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
        // Reservas por estado
        List<Reservation> findByStatus(ReservationStatus status);
 
+       // En ReservationRepository
+       List<Reservation> findByRoomIdAndReservationDate(Integer roomId, LocalDate reservationDate);
+
        // Verificar disponibilidad de sala (reservas que se solapan)
        @Query("SELECT r FROM Reservation r WHERE r.room.id = :roomId AND r.reservationDate = :date " +
                      "AND r.status != io.karaoke.karaoke_reservations.domain.ReservationStatus.CANCELLED " +
-                     "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
+                     "AND (" +
+                     // Caso 1: Reserva normal (no cruza medianoche)
+                     "(r.startTime <= r.endTime AND :startTime <= :endTime AND r.startTime < :endTime AND r.endTime > :startTime) "
+                     +
+                     "OR " +
+                     // Caso 2: Reserva existente cruza medianoche, nueva reserva no cruza
+                     "(r.startTime > r.endTime AND :startTime <= :endTime AND (r.startTime < :endTime OR r.endTime > :startTime)) "
+                     +
+                     "OR " +
+                     // Caso 3: Nueva reserva cruza medianoche, reserva existente no cruza
+                     "(r.startTime <= r.endTime AND :startTime > :endTime AND (r.startTime < :endTime OR r.endTime > :startTime)) "
+                     +
+                     "OR " +
+                     // Caso 4: Ambas reservas cruzan medianoche
+                     "(r.startTime > r.endTime AND :startTime > :endTime)" +
+                     ") " +
+                     "AND (:excludeReservationId IS NULL OR r.id != :excludeReservationId)")
        List<Reservation> findConflictingReservations(
                      @Param("roomId") Integer roomId,
                      @Param("date") LocalDate date,
                      @Param("startTime") LocalTime startTime,
-                     @Param("endTime") LocalTime endTime);
+                     @Param("endTime") LocalTime endTime,
+                     @Param("excludeReservationId") Integer excludeReservationId);
+
+       // Método para validar conflictos por usuario (incluye medianoche y
+       // excluye CANCELLED)
+       @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId AND r.reservationDate = :date " +
+                     "AND r.status != io.karaoke.karaoke_reservations.domain.ReservationStatus.CANCELLED " +
+                     "AND (" +
+                     // Caso 1: Reserva normal (no cruza medianoche)
+                     "(r.startTime <= r.endTime AND :startTime <= :endTime AND r.startTime < :endTime AND r.endTime > :startTime) "
+                     +
+                     "OR " +
+                     // Caso 2: Reserva existente cruza medianoche, nueva reserva no cruza
+                     "(r.startTime > r.endTime AND :startTime <= :endTime AND (r.startTime < :endTime OR r.endTime > :startTime)) "
+                     +
+                     "OR " +
+                     // Caso 3: Nueva reserva cruza medianoche, reserva existente no cruza
+                     "(r.startTime <= r.endTime AND :startTime > :endTime AND (r.startTime < :endTime OR r.endTime > :startTime)) "
+                     +
+                     "OR " +
+                     // Caso 4: Ambas reservas cruzan medianoche
+                     "(r.startTime > r.endTime AND :startTime > :endTime)" +
+                     ") " +
+                     "AND (:excludeReservationId IS NULL OR r.id != :excludeReservationId)")
+       List<Reservation> findConflictingReservationsByUserComplete(
+                     @Param("userId") Integer userId,
+                     @Param("date") LocalDate date,
+                     @Param("startTime") LocalTime startTime,
+                     @Param("endTime") LocalTime endTime,
+                     @Param("excludeReservationId") Integer excludeReservationId);
 
        // Reservas futuras de un usuario
        @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId AND " +
@@ -46,12 +94,4 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
                      @Param("today") LocalDate today,
                      @Param("currentTime") LocalTime currentTime);
 
-       // Comprobar si un usuario tiene reservas que se solapan
-       @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId AND r.reservationDate = :date " +
-                     "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
-       List<Reservation> findConflictingReservationsByUser(
-                     @Param("userId") Integer userId,
-                     @Param("date") LocalDate date,
-                     @Param("startTime") LocalTime startTime,
-                     @Param("endTime") LocalTime endTime);
 }

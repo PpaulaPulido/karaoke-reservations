@@ -73,7 +73,7 @@ public class ReservationService {
             return false;
         }
 
-        List<Reservation> conflicts = findConflictingReservationsComplete(roomId, date, startTime, endTime);
+        List<Reservation> conflicts = findConflictingReservationsComplete(roomId, date, startTime, endTime, null);
         return conflicts.isEmpty();
     }
 
@@ -127,65 +127,89 @@ public class ReservationService {
                     "La sala no tiene capacidad para " + reservation.getNumberOfPeople() + " personas");
         }
 
-        // Verificar conflictos
+        // Verificar conflictos - EXCLUYENDO la reserva actual si ya tiene ID
+        Integer excludeReservationId = reservation.getId(); // Será null para nuevas reservas
+
         List<Reservation> roomConflicts = findConflictingReservationsComplete(
                 room.getId(),
                 reservation.getReservationDate(),
                 reservation.getStartTime(),
-                reservation.getEndTime());
+                reservation.getEndTime(),
+                excludeReservationId);
 
         if (!roomConflicts.isEmpty()) {
-            throw new IllegalArgumentException("La sala no está disponible en el horario seleccionado. Hay "
-                    + roomConflicts.size() + " reserva(s) conflictiva(s).");
+            throw new IllegalArgumentException("La sala no está disponible en el horario seleccionado");
         }
 
-        if (hasUserConflictingReservations(reservation.getUser().getId(), reservation.getReservationDate(),
-                reservation.getStartTime(), reservation.getEndTime())) {
-            throw new IllegalArgumentException("Ya tienes una reserva en ese horario");
+        // Validar conflictos por usuario
+        if (hasUserConflictingReservationsComplete(reservation.getUser().getId(), 
+                reservation.getReservationDate(),
+                reservation.getStartTime(), 
+                reservation.getEndTime(),
+                excludeReservationId)) {
+            throw new IllegalArgumentException("Ya tienes una reserva CONFIRMED en ese horario");
         }
     }
 
-    // Método para encontrar conflictos (incluye medianoche)
+    // Método para encontrar conflictos de sala (incluye medianoche)
     private List<Reservation> findConflictingReservationsComplete(Integer roomId, LocalDate date,
-            LocalTime startTime, LocalTime endTime) {
+            LocalTime startTime, LocalTime endTime, Integer excludeReservationId) {
         boolean crossesMidnight = endTime.isBefore(startTime);
 
-        System.out.println("=== VERIFICANDO CONFLICTOS ===");
-        System.out.println("Sala: " + roomId + ", Fecha: " + date);
-        System.out.println("Horario: " + startTime + " - " + endTime);
-        System.out.println("Cruza medianoche: " + crossesMidnight);
+        List<Reservation> conflicts;
 
         if (crossesMidnight) {
             // Caso 1: Reserva que cruza medianoche
-            // Buscar conflictos en la fecha actual (parte inicial)
             List<Reservation> conflicts1 = reservationRepository.findConflictingReservations(
-                    roomId, date, startTime, LocalTime.MAX);
+                    roomId, date, startTime, LocalTime.MAX, excludeReservationId);
 
-            // Buscar conflictos en la fecha siguiente (parte final)
             List<Reservation> conflicts2 = reservationRepository.findConflictingReservations(
-                    roomId, date.plusDays(1), LocalTime.MIN, endTime);
+                    roomId, date.plusDays(1), LocalTime.MIN, endTime, excludeReservationId);
 
-            System.out.println("Conflictos parte 1: " + conflicts1.size());
-            System.out.println("Conflictos parte 2: " + conflicts2.size());
-
-            // Combinar resultados
-            List<Reservation> allConflicts = new ArrayList<>();
-            allConflicts.addAll(conflicts1);
-            allConflicts.addAll(conflicts2);
-            return allConflicts;
+            conflicts = new ArrayList<>();
+            conflicts.addAll(conflicts1);
+            conflicts.addAll(conflicts2);
         } else {
             // Caso 2: Reserva normal (no cruza medianoche)
-            List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime, endTime);
-            System.out.println("Conflictos normales: " + conflicts.size());
-            return conflicts;
+            conflicts = reservationRepository.findConflictingReservations(
+                    roomId, date, startTime, endTime, excludeReservationId);
         }
+        
+        return conflicts;
     }
 
-    boolean hasUserConflictingReservations(Integer userId, LocalDate date, LocalTime startTime,
-            LocalTime endTime) {
-        List<Reservation> conflicts = reservationRepository.findConflictingReservationsByUser(userId, date, startTime,
-                endTime);
+    // Método para validar conflictos por usuario (incluye medianoche)
+    private boolean hasUserConflictingReservationsComplete(Integer userId, LocalDate date,
+            LocalTime startTime, LocalTime endTime, Integer excludeReservationId) {
+        
+        boolean crossesMidnight = endTime.isBefore(startTime);
+        
+        List<Reservation> conflicts;
+
+        if (crossesMidnight) {
+            // Caso 1: Reserva que cruza medianoche - verificar en dos partes
+            List<Reservation> conflicts1 = reservationRepository.findConflictingReservationsByUserComplete(
+                    userId, date, startTime, LocalTime.MAX, excludeReservationId);
+
+            List<Reservation> conflicts2 = reservationRepository.findConflictingReservationsByUserComplete(
+                    userId, date.plusDays(1), LocalTime.MIN, endTime, excludeReservationId);
+
+            conflicts = new ArrayList<>();
+            conflicts.addAll(conflicts1);
+            conflicts.addAll(conflicts2);
+        } else {
+            // Caso 2: Reserva normal (no cruza medianoche)
+            conflicts = reservationRepository.findConflictingReservationsByUserComplete(
+                    userId, date, startTime, endTime, excludeReservationId);
+        }
+
         return !conflicts.isEmpty();
+    }
+
+    // Método simplificado para uso externo (sin excludeReservationId)
+    public boolean hasUserConflictingReservations(Integer userId, LocalDate date, 
+            LocalTime startTime, LocalTime endTime) {
+        return hasUserConflictingReservationsComplete(userId, date, startTime, endTime, null);
     }
 
     public void deleteReservation(Integer reservationId) {
