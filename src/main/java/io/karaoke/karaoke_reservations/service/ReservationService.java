@@ -3,6 +3,8 @@ package io.karaoke.karaoke_reservations.service;
 import io.karaoke.karaoke_reservations.domain.Reservation;
 import io.karaoke.karaoke_reservations.domain.ReservationStatus;
 import io.karaoke.karaoke_reservations.domain.Room;
+import io.karaoke.karaoke_reservations.dto.ExtraDTO;
+import io.karaoke.karaoke_reservations.dto.ReservationHistoryDTO;
 import io.karaoke.karaoke_reservations.repos.ReservationRepository;
 import io.karaoke.karaoke_reservations.repos.RoomRepository;
 import io.karaoke.karaoke_reservations.repos.ExtraRepository;
@@ -16,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -148,9 +151,9 @@ public class ReservationService {
         }
 
         // Validar conflictos por usuario
-        if (hasUserConflictingReservationsComplete(reservation.getUser().getId(), 
+        if (hasUserConflictingReservationsComplete(reservation.getUser().getId(),
                 reservation.getReservationDate(),
-                reservation.getStartTime(), 
+                reservation.getStartTime(),
                 reservation.getEndTime(),
                 excludeReservationId)) {
             throw new IllegalArgumentException("Ya tienes una reserva CONFIRMED en ese horario");
@@ -180,16 +183,16 @@ public class ReservationService {
             conflicts = reservationRepository.findConflictingReservations(
                     roomId, date, startTime, endTime, excludeReservationId);
         }
-        
+
         return conflicts;
     }
 
     // Método para validar conflictos por usuario (incluye medianoche)
     private boolean hasUserConflictingReservationsComplete(Integer userId, LocalDate date,
             LocalTime startTime, LocalTime endTime, Integer excludeReservationId) {
-        
+
         boolean crossesMidnight = endTime.isBefore(startTime);
-        
+
         List<Reservation> conflicts;
 
         if (crossesMidnight) {
@@ -213,7 +216,7 @@ public class ReservationService {
     }
 
     // Método simplificado para uso externo (sin excludeReservationId)
-    public boolean hasUserConflictingReservations(Integer userId, LocalDate date, 
+    public boolean hasUserConflictingReservations(Integer userId, LocalDate date,
             LocalTime startTime, LocalTime endTime) {
         return hasUserConflictingReservationsComplete(userId, date, startTime, endTime, null);
     }
@@ -284,9 +287,12 @@ public class ReservationService {
     }
 
     /**
-     * Construye un mapa agrupado por fecha con datos simples de reservas (DTO-like).
-     * Si userId es null devuelve todas; si no, devuelve sólo las reservas de ese usuario.
-     * Este m e9todo se ejecuta dentro de la transacci f3n del servicio para evitar problemas de LazyInitialization.
+     * Construye un mapa agrupado por fecha con datos simples de reservas
+     * (DTO-like).
+     * Si userId es null devuelve todas; si no, devuelve sólo las reservas de ese
+     * usuario.
+     * Este metodo se ejecuta dentro de la transaccion del servicio para evitar
+     * problemas de LazyInitialization.
      */
     public java.util.Map<String, java.util.List<java.util.Map<String, Object>>> getReservationsGroupedByDateForUser(Integer userId) {
         java.util.List<Reservation> list;
@@ -320,5 +326,26 @@ public class ReservationService {
         }
 
         return byDate;
+    }
+
+    // Método principal con DTOs
+    public List<ReservationHistoryDTO> findReservationHistoryByUser(Integer userId) {
+        try {
+
+            List<ReservationHistoryDTO> reservations = reservationRepository.findReservationHistoryByUserId(userId);
+            // Cargar los extras para cada reserva
+            for (ReservationHistoryDTO dto : reservations) {
+                List<ExtraDTO> extras = extraRepository.findExtrasByReservationId(dto.getId())
+                        .stream()
+                        .map(extra -> new ExtraDTO(extra)) 
+                        .collect(Collectors.toList());
+                dto.setExtras(extras);
+            }
+
+            return reservations;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 }

@@ -2,6 +2,7 @@ package io.karaoke.karaoke_reservations.repos;
 
 import io.karaoke.karaoke_reservations.domain.Reservation;
 import io.karaoke.karaoke_reservations.domain.ReservationStatus;
+import io.karaoke.karaoke_reservations.dto.ReservationHistoryDTO;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -93,5 +94,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
                      @Param("userId") Integer userId,
                      @Param("today") LocalDate today,
                      @Param("currentTime") LocalTime currentTime);
+
+       // Agrega este método al repository existente
+       @Query("SELECT new io.karaoke.karaoke_reservations.dto.ReservationHistoryDTO(" +
+                     "r.id, room.name, r.reservationDate, r.startTime, r.endTime, " +
+                     "r.numberOfPeople, r.totalPrice, r.status, r.durationMinutes, r.dateCreated) " +
+                     "FROM Reservation r " +
+                     "LEFT JOIN r.room room " +
+                     "WHERE r.user.id = :userId " +
+                     "ORDER BY r.reservationDate DESC, r.startTime DESC")
+       List<ReservationHistoryDTO> findReservationHistoryByUserId(@Param("userId") Integer userId);
 
 }

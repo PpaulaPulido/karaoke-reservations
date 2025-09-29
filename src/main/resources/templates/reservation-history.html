@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Reservas - Karaoke Vibes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/reservation-history.css">
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span>Karaoke Vibes</span>
+            </div>
+        </div>
+
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <!-- Manejo seguro del usuario -->
+                <h3 th:if="${user != null}" th:text="${user.fullName}">Usuario</h3>
+                <h3 th:if="${user == null}">Usuario</h3>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/reservations/my-reservations"><i class="fas fa-calendar-check"></i> Mis Reservas</a></li>
+            <li><a href="/reservations/history" class="active"><i class="fas fa-history"></i> Historial</a></li>
+            <li><a href="/reservations/new"><i class="fas fa-calendar-plus"></i> Nueva Reserva</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <header class="page-header">
+                <!-- Manejo seguro del título -->
+                <div th:if="${user != null}">
+                    <h1><i class="fas fa-history"></i> Historial de Reservas - <span th:text="${user.fullName}"></span></h1>
+                </div>
+                <div th:if="${user == null}">
+                    <h1><i class="fas fa-history"></i> Historial de Reservas</h1>
+                </div>
+                <p>Revisa todas tus reservas pasadas y su estado</p>
+            </header>
+
+            <!-- Mensaje de error -->
+            <div th:if="${error != null}" class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Estadísticas -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card" th:attr="data-count=${totalReservations != null ? totalReservations : 0}">
+                        <div class="stat-icon total">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="counter" th:text="${totalReservations != null ? totalReservations : 0}">0</h3>
+                            <p>Total Reservas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" th:attr="data-count=${completedCount != null ? completedCount : 0}">
+                        <div class="stat-icon completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="counter" th:text="${completedCount != null ? completedCount : 0}">0</h3>
+                            <p>Completadas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" th:attr="data-count=${cancelledCount != null ? cancelledCount : 0}">
+                        <div class="stat-icon cancelled">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="counter" th:text="${cancelledCount != null ? cancelledCount : 0}">0</h3>
+                            <p>Canceladas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" th:attr="data-count=${confirmedCount != null ? confirmedCount : 0}">
+                        <div class="stat-icon confirmed">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="counter" th:text="${confirmedCount != null ? confirmedCount : 0}">0</h3>
+                            <p>Confirmadas</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filtros y Búsqueda -->
+            <section class="filters-section">
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label for="filter-select"><i class="fas fa-filter"></i> Filtrar por:</label>
+                        <select id="filter-select" class="form-input" th:value="${currentFilter}">
+                            <option value="all">Todas las reservas</option>
+                            <option value="completed">Completadas</option>
+                            <option value="cancelled">Canceladas</option>
+                            <option value="confirmed">Confirmadas</option>
+                            <option value="past">Pasadas</option>
+                            <option value="upcoming">Próximas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="sort-select"><i class="fas fa-sort"></i> Ordenar por:</label>
+                        <select id="sort-select" class="form-input" th:value="${currentSort}">
+                            <option value="date_desc">Fecha (más reciente)</option>
+                            <option value="date_asc">Fecha (más antigua)</option>
+                            <option value="price_desc">Precio (mayor a menor)</option>
+                            <option value="price_asc">Precio (menor a mayor)</option>
+                            <option value="people_desc">Personas (mayor a menor)</option>
+                        </select>
+                    </div>
+
+                    <div class="results-count">
+                        <i class="fas fa-chart-bar"></i>
+                        <span th:text="'Mostrando ' + (${filteredCount != null ? filteredCount : 0}) + ' de ' + (${totalReservations != null ? totalReservations : 0}) + ' reservas'"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lista de Reservas -->
+            <section class="reservations-section">
+                <div th:if="${reservations == null or reservations.empty}" class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <h3>No hay reservas encontradas</h3>
+                    <p th:if="${user == null}">No se pudo cargar la información del usuario.</p>
+                    <p th:if="${user != null}">No se encontraron reservas con los filtros aplicados.</p>
+                    <a href="/reservations/new" class="btn-primary">
+                        <i class="fas fa-calendar-plus"></i> Crear Nueva Reserva
+                    </a>
+                </div>
+
+                <div th:if="${reservations != null and !reservations.empty}" class="reservations-list">
+                    <div th:each="reservation, status : ${reservations}" class="reservation-card"
+                        th:classappend="${reservation.status.name().toLowerCase()}"
+                        th:attr="data-index=${status.index}">
+
+                        <div class="reservation-header">
+                            <div class="reservation-info">
+                                <h3 th:text="${reservation.roomName != null ? reservation.roomName : 'Sala no disponible'}">Sala Name</h3>
+                                <div class="reservation-meta">
+                                    <span class="date" 
+                                          th:if="${reservation.reservationDate != null}"
+                                          th:text="${#temporals.format(reservation.reservationDate, 'dd/MM/yyyy')}">
+                                    </span>
+                                    <span class="time"
+                                          th:if="${reservation.startTime != null and reservation.endTime != null}"
+                                          th:text="|${#temporals.format(reservation.startTime, 'HH:mm')} - ${#temporals.format(reservation.endTime, 'HH:mm')}|">
+                                    </span>
+                                    <span class="people" 
+                                          th:if="${reservation.numberOfPeople != null}"
+                                          th:text="|${reservation.numberOfPeople} personas|">
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="reservation-status" th:classappend="${reservation.status.name().toLowerCase()}">
+                                <i class="status-icon" 
+                                   th:classappend="'fas ' + 
+                                   (${reservation.status.name()} == 'COMPLETED' ? 'fa-check-circle' : 
+                                   (${reservation.status.name()} == 'CANCELLED' ? 'fa-times-circle' : 'fa-clock'))"></i>
+                                <span th:text="${#strings.capitalize(#strings.toLowerCase(reservation.status.name()))}"></span>
+                            </div>
+                        </div>
+
+                        <div class="reservation-details">
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <strong><i class="fas fa-hourglass-half"></i> Duración:</strong>
+                                    <span th:if="${reservation.durationMinutes != null}" 
+                                          th:text="|${reservation.durationMinutes} minutos|">
+                                    </span>
+                                    <span th:if="${reservation.durationMinutes == null}">No disponible</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong><i class="fas fa-tag"></i> Precio Total:</strong>
+                                    <span class="price" 
+                                          th:if="${reservation.totalPrice != null}"
+                                          th:text="|$${#numbers.formatDecimal(reservation.totalPrice, 1, 2, 'COMMA')}|">
+                                    </span>
+                                    <span th:if="${reservation.totalPrice == null}">No disponible</span>
+                                </div>
+                            </div>
+
+                            <div th:if="${reservation.extras != null and !reservation.extras.empty}" class="extras-section">
+                                <strong><i class="fas fa-gift"></i> Extras:</strong>
+                                <div class="extras-list">
+                                    <span th:each="extra : ${reservation.extras}" class="extra-tag"
+                                        th:text="${extra.name} + ' ($' + ${#numbers.formatDecimal(extra.price, 1, 2, 'COMMA')} + ')'">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="reservation-actions">
+                                <div class="reservation-date">
+                                    <small th:if="${reservation.dateCreated != null}"
+                                        th:text="|Creada: ${#temporals.format(reservation.dateCreated, 'dd/MM/yyyy HH:mm')}|">
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal de Detalles -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Detalles de la Reserva</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="reservation-details-content">
+                    <!-- Los detalles se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="close-details-modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner">
+        <div class="spinner-content">
+            <div class="spinner-icon">
+                <i class="fas fa-music fa-spin"></i>
+            </div>
+            <p>Cargando historial...</p>
+        </div>
+    </div>
+
+    <script src="/js/reservation-history.js"></script>
+</body>
+
+</html>

@@ -2,17 +2,25 @@ package io.karaoke.karaoke_reservations.controller;
 
 import io.karaoke.karaoke_reservations.domain.Extra;
 import io.karaoke.karaoke_reservations.domain.Reservation;
+import io.karaoke.karaoke_reservations.domain.ReservationStatus;
 import io.karaoke.karaoke_reservations.domain.User;
 import io.karaoke.karaoke_reservations.dto.CreateReservationRequest;
+import io.karaoke.karaoke_reservations.dto.ReservationHistoryDTO;
 import io.karaoke.karaoke_reservations.service.ExtraService;
 import io.karaoke.karaoke_reservations.service.ReservationService;
 import io.karaoke.karaoke_reservations.service.RoomService;
 import io.karaoke.karaoke_reservations.service.UserService;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-
+import java.util.stream.Collectors;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -217,5 +225,172 @@ public class ReservationController {
             err.put("error", "Error cargando reservas: " + e.getMessage());
             return err;
         }
+    }
+
+    @GetMapping("/history")
+    public String getReservationHistory(
+            Authentication authentication,
+            @RequestParam(value = "filter", defaultValue = "all") String filter,
+            @RequestParam(value = "sort", defaultValue = "date_desc") String sort,
+            Model model) {
+
+        try {
+            String email = authentication.getName();
+            User user = userService.findByEmail(email);
+
+            if (user == null) {
+                model.addAttribute("error", "Usuario no encontrado");
+                model.addAttribute("user", null);
+                model.addAttribute("reservations", new ArrayList<ReservationHistoryDTO>());
+                model.addAttribute("totalReservations", 0);
+                model.addAttribute("completedCount", 0);
+                model.addAttribute("cancelledCount", 0);
+                model.addAttribute("confirmedCount", 0);
+                model.addAttribute("filteredCount", 0);
+                model.addAttribute("currentFilter", filter);
+                model.addAttribute("currentSort", sort);
+                return "reservation-history";
+            }
+
+            List<ReservationHistoryDTO> allReservations = reservationService.findReservationHistoryByUser(user.getId());
+
+            // Aplicar filtros
+            List<ReservationHistoryDTO> filteredReservations = filterReservationsDTO(allReservations, filter);
+
+            // Aplicar ordenamiento 
+            List<ReservationHistoryDTO> sortedReservations = sortReservationsDTO(filteredReservations, sort);
+
+            // Calcular estadísticas usando el nuevo método para DTOs
+            long completedCount = countByStatusDTO(allReservations, ReservationStatus.COMPLETED);
+            long cancelledCount = countByStatusDTO(allReservations, ReservationStatus.CANCELLED);
+            long confirmedCount = countByStatusDTO(allReservations, ReservationStatus.CONFIRMED);
+
+            // Agregar todos los atributos al modelo
+            model.addAttribute("reservations", sortedReservations);
+            model.addAttribute("user", user);
+            model.addAttribute("currentFilter", filter);
+            model.addAttribute("currentSort", sort);
+            model.addAttribute("totalReservations", allReservations.size());
+            model.addAttribute("filteredCount", sortedReservations.size());
+            model.addAttribute("completedCount", completedCount);
+            model.addAttribute("cancelledCount", cancelledCount);
+            model.addAttribute("confirmedCount", confirmedCount);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            model.addAttribute("error", "Error al cargar el historial: " + e.getMessage());
+            model.addAttribute("user", null);
+            model.addAttribute("reservations", new ArrayList<ReservationHistoryDTO>());
+            model.addAttribute("totalReservations", 0);
+            model.addAttribute("completedCount", 0);
+            model.addAttribute("cancelledCount", 0);
+            model.addAttribute("confirmedCount", 0);
+            model.addAttribute("filteredCount", 0);
+            model.addAttribute("currentFilter", "all");
+            model.addAttribute("currentSort", "date_desc");
+        }
+
+        return "reservation-history";
+    }
+
+    // Métodos auxiliares adaptados para DTOs
+    private List<ReservationHistoryDTO> filterReservationsDTO(List<ReservationHistoryDTO> reservations, String filter) {
+        return reservations.stream()
+                .filter(reservation -> {
+                    if (reservation == null)
+                        return false;
+
+                    switch (filter.toLowerCase()) {
+                        case "completed":
+                            return reservation.getStatus() == ReservationStatus.COMPLETED;
+                        case "cancelled":
+                            return reservation.getStatus() == ReservationStatus.CANCELLED;
+                        case "confirmed":
+                            return reservation.getStatus() == ReservationStatus.CONFIRMED;
+                        case "past":
+                            if (reservation.getReservationDate() == null)
+                                return false;
+                            return reservation.getReservationDate().isBefore(LocalDate.now()) ||
+                                    (reservation.getReservationDate().equals(LocalDate.now()) &&
+                                            reservation.getEndTime() != null &&
+                                            reservation.getEndTime().isBefore(LocalTime.now()));
+                        case "upcoming":
+                            if (reservation.getReservationDate() == null)
+                                return false;
+                            return reservation.getReservationDate().isAfter(LocalDate.now()) ||
+                                    (reservation.getReservationDate().equals(LocalDate.now()) &&
+                                            reservation.getStartTime() != null &&
+                                            reservation.getStartTime().isAfter(LocalTime.now()));
+                        default:
+                            return true; // "all"
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+   
+    private List<ReservationHistoryDTO> sortReservationsDTO(List<ReservationHistoryDTO> reservations, String sort) {
+        Comparator<ReservationHistoryDTO> comparator;
+
+        switch (sort) {
+            case "date_asc":
+                comparator = Comparator.comparing(ReservationHistoryDTO::getReservationDate)
+                        .thenComparing(ReservationHistoryDTO::getStartTime);
+                break;
+            case "price_desc":
+                comparator = (r1, r2) -> {
+                    BigDecimal price1 = r1.getTotalPrice();
+                    BigDecimal price2 = r2.getTotalPrice();
+                    if (price1 == null && price2 == null)
+                        return 0;
+                    if (price1 == null)
+                        return 1;
+                    if (price2 == null)
+                        return -1;
+                    return price2.compareTo(price1); 
+                };
+                break;
+            case "price_asc":
+                comparator = (r1, r2) -> {
+                    BigDecimal price1 = r1.getTotalPrice();
+                    BigDecimal price2 = r2.getTotalPrice();
+                    if (price1 == null && price2 == null)
+                        return 0;
+                    if (price1 == null)
+                        return 1;
+                    if (price2 == null)
+                        return -1;
+                    return price1.compareTo(price2); 
+                };
+                break;
+            case "people_desc":
+                comparator = (r1, r2) -> {
+                    Integer people1 = r1.getNumberOfPeople();
+                    Integer people2 = r2.getNumberOfPeople();
+                    if (people1 == null && people2 == null)
+                        return 0;
+                    if (people1 == null)
+                        return 1;
+                    if (people2 == null)
+                        return -1;
+                    return Integer.compare(people2, people1);
+                };
+                break;
+            default: // "date_desc"
+                comparator = Comparator.comparing(ReservationHistoryDTO::getReservationDate)
+                        .thenComparing(ReservationHistoryDTO::getStartTime)
+                        .reversed();
+        }
+
+        return reservations.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    private long countByStatusDTO(List<ReservationHistoryDTO> reservations, ReservationStatus status) {
+        return reservations.stream()
+                .filter(r -> r != null && r.getStatus() == status)
+                .count();
     }
 }

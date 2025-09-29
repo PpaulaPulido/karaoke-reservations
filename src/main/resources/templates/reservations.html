@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,6 @@
 
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar (igual que en otras páginas) -->
         <nav class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -31,9 +31,14 @@
 
             <ul class="sidebar-nav">
                 <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="/reservations/calendar" class="active"><i class="fas fa-calendar"></i> Calendario</a></li>
+                <!-- <li><a href="/reservations/calendar" class="active"><i class="fas fa-calendar"></i> Calendario</a></li> -->
                 <li><a href="/reservations/new"><i class="fas fa-calendar-plus"></i> Nueva Reserva</a></li>
                 <li><a href="/reservations/my-reservations"><i class="fas fa-history"></i> Mis Reservas</a></li>
+                <li>
+                    <a href="/reservations/history">
+                        <i class="fas fa-history"></i> Historial
+                    </a>
+                </li>
             </ul>
 
             <div class="sidebar-footer">
@@ -64,7 +69,7 @@
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
-                        
+
                         <a href="/reservations/new" class="btn-primary">
                             <i class="fas fa-plus"></i> Nueva Reserva
                         </a>
@@ -103,4 +108,5 @@
 
     <script src="/js/calendar.js"></script>
 </body>
+
 </html>

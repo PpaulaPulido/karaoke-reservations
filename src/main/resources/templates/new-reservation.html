@@ -32,6 +32,11 @@
             <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="/reservations/my-reservations"><i class="fas fa-calendar-check"></i> Mis Reservas</a></li>
             <li><a href="/new-reservation" class="active"><i class="fas fa-calendar-plus"></i> Nueva Reserva</a></li>
+            <li>
+                <a href="/reservations/history">
+                    <i class="fas fa-history"></i> Historial
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-footer">
@@ -83,7 +88,7 @@
                     <span th:text="${error}">Error message</span>
                 </div>
             </div>
-            
+
             <div id="constraint-messages" class="constraint-messages" style="display: none;"></div>
 
             <form id="reservation-form" class="reservation-form" method="post" action="/reservations/create">

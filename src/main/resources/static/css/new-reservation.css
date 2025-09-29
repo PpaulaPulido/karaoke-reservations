@@ -1629,16 +1629,6 @@ body {
     color: var(--success-color);
 }
 
-.room-card.selected {
-    border-color: #007bff;
-    background-color: rgba(0, 123, 255, 0.05);
-}
-
-.extra-card.selected {
-    border-color: #28a745;
-    background-color: rgba(40, 167, 69, 0.05);
-}
-
 .constraint-alert {
     display: flex;
     align-items: flex-start;
