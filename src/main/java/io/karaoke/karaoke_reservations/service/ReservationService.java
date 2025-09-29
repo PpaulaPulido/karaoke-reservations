@@ -48,7 +48,13 @@ public class ReservationService {
 
     // Obtener reservas por usuario
     public List<Reservation> findByUser(Integer userId) {
-        return reservationRepository.findByUserId(userId);
+        try {
+            return reservationRepository.findByUserId(userId);
+        } catch (Exception e) {
+            System.err.println("Error en findByUser: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>(); // Retornar lista vacía en caso de error
+        }
     }
 
     // Obtener reservas por sala
@@ -270,5 +276,49 @@ public class ReservationService {
 
     public long getReservationCountByUser(Integer userId) {
         return reservationRepository.findByUserId(userId).size();
+    }
+
+    // Obtener todas las reservas (para APIs como calendario)
+    public List<Reservation> findAll() {
+        return reservationRepository.findAll();
+    }
+
+    /**
+     * Construye un mapa agrupado por fecha con datos simples de reservas (DTO-like).
+     * Si userId es null devuelve todas; si no, devuelve sólo las reservas de ese usuario.
+     * Este m e9todo se ejecuta dentro de la transacci f3n del servicio para evitar problemas de LazyInitialization.
+     */
+    public java.util.Map<String, java.util.List<java.util.Map<String, Object>>> getReservationsGroupedByDateForUser(Integer userId) {
+        java.util.List<Reservation> list;
+        if (userId != null) {
+            list = reservationRepository.findByUserId(userId);
+        } else {
+            list = reservationRepository.findAll();
+        }
+
+        java.util.Map<String, java.util.List<java.util.Map<String, Object>>> byDate = new java.util.HashMap<>();
+
+        for (Reservation r : list) {
+            String key = r.getReservationDate().toString();
+            byDate.computeIfAbsent(key, k -> new java.util.ArrayList<>());
+
+            java.util.Map<String, Object> item = new java.util.HashMap<>();
+            item.put("id", r.getId());
+            item.put("reservationDate", r.getReservationDate().toString());
+            item.put("startTime", r.getStartTime() != null ? r.getStartTime().toString() : null);
+            item.put("endTime", r.getEndTime() != null ? r.getEndTime().toString() : null);
+            item.put("numberOfPeople", r.getNumberOfPeople());
+            item.put("status", r.getStatus() != null ? r.getStatus().name().toLowerCase() : "confirmed");
+            if (r.getRoom() != null) {
+                java.util.Map<String, Object> room = new java.util.HashMap<>();
+                room.put("id", r.getRoom().getId());
+                room.put("name", r.getRoom().getName());
+                item.put("room", room);
+            }
+
+            byDate.get(key).add(item);
+        }
+
+        return byDate;
     }
 }

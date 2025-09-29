@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Reservas - Karaoke Vibes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="calendar.css">
+</head>
+
+<body>
+    <div class="calendar-container">
+        <header class="page-header">
+            <h1><i class="fas fa-calendar-alt"></i> Calendario de Reservas</h1>
+            <p>Visualiza las reservaciones del karaoke (datos de prueba)</p>
+        </header>
+
+        <!-- Sección del Calendario -->
+        <section class="calendar-section" id="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-navigation">
+                    <button class="calendar-nav-btn" id="prev-month">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 id="current-month-year">Mes Año</h2>
+                    <button class="calendar-nav-btn" id="next-month">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <button class="btn-primary" id="add-sample-data">
+                    <i class="fas fa-plus"></i> Agregar Datos de Prueba
+                </button>
+            </div>
+
+            <div class="calendar-weekdays">
+                <div class="weekday">Lun</div>
+                <div class="weekday">Mar</div>
+                <div class="weekday">Mié</div>
+                <div class="weekday">Jue</div>
+                <div class="weekday">Vie</div>
+                <div class="weekday">Sáb</div>
+                <div class="weekday">Dom</div>
+            </div>
+
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Los días se generan dinámicamente con JavaScript -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para detalles de reservas -->
+    <div id="reservation-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reservaciones para <span id="modal-date"></span></h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div id="modal-reservations-content">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="calendar.js"></script>
+</body>
+</html>

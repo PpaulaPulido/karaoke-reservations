@@ -188,4 +188,34 @@ public class ReservationController {
 
         return "redirect:/reservations/my-reservations";
     }
+
+    // Endpoint JSON para el calendario
+    @GetMapping("/calendar/api")
+    @ResponseBody
+    public Object getCalendarReservations(Authentication authentication) {
+        // Devolver las reservas agrupadas por fecha, filtrando por el usuario autenticado
+        try {
+            Integer currentUserId = null;
+            if (authentication != null) {
+                String email = authentication.getName();
+                if (email != null) {
+                    User user = userService.findByEmail(email);
+                    if (user != null) {
+                        currentUserId = user.getId();
+                    }
+                }
+            }
+
+            java.util.Map<String, java.util.List<java.util.Map<String, Object>>> byDate = reservationService.getReservationsGroupedByDateForUser(currentUserId);
+
+            java.util.Map<String, Object> resp = new java.util.HashMap<>();
+            resp.put("reservationsByDate", byDate);
+            return resp;
+        } catch (Exception e) {
+            e.printStackTrace();
+            java.util.Map<String, Object> err = new java.util.HashMap<>();
+            err.put("error", "Error cargando reservas: " + e.getMessage());
+            return err;
+        }
+    }
 }

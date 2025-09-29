@@ -1,0 +1,518 @@
+/* Variables de colores para tema oscuro */
+:root {
+    --primary-color: #20b2aa;
+    --accent-color: #6a5acd;
+    --text-color: #e0e0e0;
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --card-color: #2d2d2d;
+    --border-color: #404040;
+    --light-bg: #2a2a2a;
+    --success-color: #4caf50;
+    --warning-color: #ffb74d;
+    --danger-color: #f44336;
+    --hover-color: #383838;
+}
+
+/* Estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.calendar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(32, 178, 170, 0.3);
+}
+
+.page-header p {
+    color: #aaa;
+    font-size: 1.1rem;
+}
+
+/* Estilos del Calendario */
+.calendar-section {
+    background: var(--surface-color);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-navigation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.calendar-nav-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-nav-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(106, 90, 205, 0.6);
+}
+
+#current-month-year {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    min-width: 200px;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(32, 178, 170, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(106, 90, 205, 0.4);
+}
+
+/* Días de la semana */
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.weekday {
+    padding: 10px;
+    background: var(--card-color);
+    border-radius: 6px;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+}
+
+/* Cuadrícula del calendario */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-day {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 120px;
+    background: var(--card-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day:hover {
+    background: var(--hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--primary-color);
+}
+
+.calendar-day.empty {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    cursor: default;
+    box-shadow: none;
+}
+
+.calendar-day.empty:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border-color);
+}
+
+.calendar-day.today {
+    background: linear-gradient(135deg, rgba(32, 178, 170, 0.2), rgba(106, 90, 205, 0.2));
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 15px rgba(32, 178, 170, 0.3);
+}
+
+.calendar-day.past-day {
+    background-color: var(--surface-color);
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.calendar-day.past-day:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border-color);
+}
+
+.day-number {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.reservations-info {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.reservation-count {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.available-text {
+    color: var(--success-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Modal de Detalles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: var(--surface-color);
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    color: var(--text-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.close-modal {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.3s ease;
+}
+
+.close-modal:hover {
+    color: var(--accent-color);
+}
+
+.reservation-item {
+    background: var(--card-color);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reservation-item:hover {
+    background: var(--hover-color);
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.reservation-header h4 {
+    margin: 0;
+    color: var(--accent-color);
+}
+
+.reservation-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.reservation-status.confirmed {
+    background: rgba(32, 178, 170, 0.2);
+    color: var(--primary-color);
+    border: 1px solid rgba(32, 178, 170, 0.5);
+}
+
+.reservation-status.pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning-color);
+    border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.reservation-status.cancelled {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger-color);
+    border: 1px solid rgba(244, 67, 54, 0.5);
+}
+
+.reservation-status.completed {
+    background: rgba(158, 158, 158, 0.2);
+    color: #9e9e9e;
+    border: 1px solid rgba(158, 158, 158, 0.5);
+}
+
+.reservation-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.reservation-details > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.reservation-details i {
+    color: var(--primary-color);
+    width: 16px;
+}
+
+.no-reservations-message {
+    text-align: center;
+    padding: 2rem;
+    color: #aaa;
+}
+
+.no-reservations-message i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.no-reservations-message p {
+    margin-bottom: 1.5rem;
+}
+
+.small-text {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+/* Efectos de brillo y sombras */
+.calendar-section, .modal-content, .reservation-item {
+    position: relative;
+}
+
+.calendar-section::before, .modal-content::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+}
+
+/* Preview inside each day showing first reservation */
+.reservation-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    background: linear-gradient(180deg, rgba(32,178,170,0.03), transparent);
+    border-radius: 8px;
+    border: 1px solid rgba(64,64,64,0.6);
+}
+
+.reservation-preview .preview-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-room {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.preview-time {
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+.preview-more {
+    font-size: 0.75rem;
+    color: #bbb;
+    text-align: right;
+}
+
+/* Botón de cancelar reserva dentro del modal/detalle */
+.btn-cancel-reservation {
+    background: transparent;
+    color: var(--danger-color);
+    border: 1px solid rgba(244,67,54,0.15);
+    padding: 0.45rem 0.7rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-cancel-reservation:hover {
+    background: var(--danger-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(244,67,54,0.18);
+}
+
+.btn-cancel-reservation:active {
+    transform: translateY(0);
+}
+/* cleanup: removed stray properties that broke the file */
+
+/* Responsive */
+@media (max-width: 768px) {
+    .calendar-container {
+        padding: 1rem;
+    }
+    
+    .calendar-section {
+        padding: 1rem;
+    }
+    
+    .calendar-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .reservation-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-grid {
+        gap: 4px;
+    }
+    
+    .calendar-day {
+        min-height: 100px;
+        padding: 8px;
+    }
+    
+    .day-number {
+        font-size: 1rem;
+    }
+    
+    .reservation-count, .available-text {
+        font-size: 0.7rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+}

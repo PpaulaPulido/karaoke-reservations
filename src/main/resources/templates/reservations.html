@@ -1,11 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Calendario de Reservas - Karaoke Vibes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/calendar.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
 </head>
+
 <body>
-    <h1>Holaa</h1>
+    <div class="dashboard-container">
+        <!-- Sidebar (igual que en otras páginas) -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-music"></i>
+                    <span>Karaoke Vibes</span>
+                </div>
+            </div>
+
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h3 th:text="${user.fullName}">Usuario</h3>
+                </div>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="/reservations/calendar" class="active"><i class="fas fa-calendar"></i> Calendario</a></li>
+                <li><a href="/reservations/new"><i class="fas fa-calendar-plus"></i> Nueva Reserva</a></li>
+                <li><a href="/reservations/my-reservations"><i class="fas fa-history"></i> Mis Reservas</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <header class="page-header">
+                    <h1><i class="fas fa-calendar-alt"></i> Calendario de Reservas</h1>
+                    <p>Visualiza y gestiona todas las reservaciones del karaoke</p>
+                </header>
+
+                <!-- Sección del Calendario -->
+                <section class="calendar-section" id="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-navigation">
+                            <button class="calendar-nav-btn" id="prev-month">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h2 id="current-month-year">Mes Año</h2>
+                            <button class="calendar-nav-btn" id="next-month">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <a href="/reservations/new" class="btn-primary">
+                            <i class="fas fa-plus"></i> Nueva Reserva
+                        </a>
+                    </div>
+
+                    <div class="calendar-weekdays">
+                        <div class="weekday">Lun</div>
+                        <div class="weekday">Mar</div>
+                        <div class="weekday">Mié</div>
+                        <div class="weekday">Jue</div>
+                        <div class="weekday">Vie</div>
+                        <div class="weekday">Sáb</div>
+                        <div class="weekday">Dom</div>
+                    </div>
+
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Los días se generan dinámicamente con JavaScript -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para detalles de reservas -->
+    <div id="reservation-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reservaciones para <span id="modal-date"></span></h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div id="modal-reservations-content">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/calendar.js"></script>
 </body>
 </html>
