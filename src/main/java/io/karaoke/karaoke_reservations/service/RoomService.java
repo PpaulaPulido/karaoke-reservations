@@ -61,7 +61,7 @@ public class RoomService {
             return false;
         }
         
-        List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime, endTime);
+        List<Reservation> conflicts = reservationRepository.findConflictingReservations(roomId, date, startTime, endTime, null);
         return conflicts.isEmpty(); 
     }
 

@@ -52,8 +52,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "is_admin", nullable = false) 
-    private Boolean isAdmin = false;
+    @Column(name = "is_admin")
+    private boolean admin;
 
     @OneToMany(mappedBy = "user")
     private Set<Reservation> userReservations = new HashSet<>();
@@ -66,12 +66,6 @@ public class User {
     @Column(nullable = false)
     private OffsetDateTime lastUpdated;
 
-    public Boolean getIsAdmin() {
-        return isAdmin;
-    }
-    
-    public void setIsAdmin(Boolean isAdmin) {
-        this.isAdmin = isAdmin;
-    }
+
 
 }

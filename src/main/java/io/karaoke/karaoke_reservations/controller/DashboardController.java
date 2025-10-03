@@ -28,6 +28,13 @@ public class DashboardController {
             if (user != null) {
                 model.addAttribute("user", user);
                 log.info("Usuario autenticado: {}", user.getEmail());
+                
+                // ✅ VERIFICAR SI ES ADMIN Y REDIRIGIR
+                if (user.isAdmin()) { // Asegúrate de que tu entidad User tenga este método
+                    log.info("Usuario es administrador, redirigiendo a admin dashboard");
+                    return "redirect:/admin/dashboard";
+                }
+                
             } else {
                 log.error("Usuario no encontrado para email: {}", email);
                 model.addAttribute("error", "Usuario no encontrado");

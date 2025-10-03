@@ -42,7 +42,7 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setIsAdmin(false); // Siempre false para registros normales
+        user.setAdmin(false); // Siempre false para registros normales
         return userRepository.save(user);
     }
 
@@ -56,11 +56,11 @@ public class UserService {
     }
 
     public List<User> findAllUsers() {
-        return userRepository.findByIsAdminFalse();
+        return userRepository.findByAdminFalse();
     }
 
     public List<User> findAllAdmins() {
-        return userRepository.findByIsAdminTrue();
+        return userRepository.findByAdminTrue();
     }
 
     public User updateUser(Integer userId, User userDetails) {
@@ -94,14 +94,14 @@ public class UserService {
         user.setEmail(user.getEmail().trim().toLowerCase());
         user.setFullName(user.getFullName().trim());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setIsAdmin(true);
+        user.setAdmin(true);
         
         return userRepository.save(user);
     }
 
     public boolean isAdmin(Integer userId) {
         return userRepository.findById(userId)
-                .map(User::getIsAdmin)
+                .map(User::isAdmin)
                 .orElse(false);
     }
 }
