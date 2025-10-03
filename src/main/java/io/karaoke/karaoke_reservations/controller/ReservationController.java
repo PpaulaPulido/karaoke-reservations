@@ -27,6 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
 
 @Controller
 @RequestMapping("/reservations")
@@ -392,5 +393,34 @@ public class ReservationController {
         return reservations.stream()
                 .filter(r -> r != null && r.getStatus() == status)
                 .count();
+    }
+
+    // Endpoint JSON para el calendario del ADMIN (todas las reservas)
+    @GetMapping("/calendar/api/admin")
+    @ResponseBody
+    public Object getCalendarReservationsForAdmin(Authentication authentication) {
+        try {
+            // Verificar que el usuario es admin
+            String email = authentication.getName();
+            User user = userService.findByEmail(email);
+            
+            if (user == null || !user.isAdmin()) {
+                java.util.Map<String, Object> err = new java.util.HashMap<>();
+                err.put("error", "No autorizado");
+                return ResponseEntity.status(403).body(err);
+            }
+
+            java.util.Map<String, java.util.List<java.util.Map<String, Object>>> byDate = 
+                reservationService.getReservationsGroupedByDateForAdmin();
+
+            java.util.Map<String, Object> resp = new java.util.HashMap<>();
+            resp.put("reservationsByDate", byDate);
+            return resp;
+        } catch (Exception e) {
+            e.printStackTrace();
+            java.util.Map<String, Object> err = new java.util.HashMap<>();
+            err.put("error", "Error cargando reservas: " + e.getMessage());
+            return err;
+        }
     }
 }

@@ -1,12 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Panel de Administración - Karaoke Vibes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
 </head>
 <body>
-    <h1>Welcome to the Admin Dashboard</h1>
-    <p>This is the admin-specific content.</p>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1><i class="fas fa-crown"></i> Panel de Administración</h1>
+            <p>Gestiona reservas</p>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </form>
+        </header>
+
+        <!-- Pestañas de administración -->
+        <section class="admin-tabs">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="calendar">
+                    <i class="fas fa-calendar-alt"></i> Calendario de Reservas
+                </button>
+            </div>
+
+            <!-- Pestaña del Calendario -->
+            <div id="calendar-tab" class="tab-content active">
+                <section class="calendar-section" id="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-navigation">
+                            <button class="calendar-nav-btn" id="prev-month">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h2 id="current-month-year">Mes Año</h2>
+                            <button class="calendar-nav-btn" id="next-month">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="admin-actions">
+                            <button class="btn-primary" id="refresh-data">
+                                <i class="fas fa-sync-alt"></i> Actualizar Datos
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-weekdays">
+                        <div class="weekday">Lun</div>
+                        <div class="weekday">Mar</div>
+                        <div class="weekday">Mié</div>
+                        <div class="weekday">Jue</div>
+                        <div class="weekday">Vie</div>
+                        <div class="weekday">Sáb</div>
+                        <div class="weekday">Dom</div>
+                    </div>
+
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Los días se generan dinámicamente con JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Pestaña de Salas -->
+            <div id="rooms-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2>Gestión de Salas</h2>
+                    <button class="btn-primary" id="add-room-btn">
+                        <i class="fas fa-plus"></i> Agregar Nueva Sala
+                    </button>
+                </div>
+                <div id="rooms-management-content">
+                    <!-- Contenido de gestión de salas se cargará aquí -->
+                    <p>Cargando gestión de salas...</p>
+                </div>
+            </div>
+
+            <!-- Pestaña de Extras -->
+            <div id="extras-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2>Gestión de Servicios Adicionales</h2>
+                    <button class="btn-primary" id="add-extra-btn">
+                        <i class="fas fa-plus"></i> Agregar Nuevo Extra
+                    </button>
+                </div>
+                <div id="extras-management-content">
+                    <!-- Contenido de gestión de extras se cargará aquí -->
+                    <p>Cargando gestión de servicios adicionales...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para detalles de reservas (modificado para admin) -->
+    <div id="reservation-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalles de Reservación - <span id="modal-date"></span></h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div id="modal-reservations-content">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/calendar.js"></script>
+    <script src="/js/admin-calendar.js"></script>
+    <script src="/js/rooms-management.js"></script>
+    <script src="/js/extras-management.js"></script>
 </body>
 </html>

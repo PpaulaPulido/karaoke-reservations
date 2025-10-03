@@ -160,7 +160,12 @@ body {
     margin-top: auto;
 }
 
+.sidebar-footer form {
+    width: 100%;
+}
+
 .logout-btn {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -171,6 +176,10 @@ body {
     border-radius: var(--border-radius);
     transition: all var(--transition-speed);
     border: 1px solid rgba(255, 107, 107, 0.3);
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    text-align: left;
 }
 
 .logout-btn:hover {

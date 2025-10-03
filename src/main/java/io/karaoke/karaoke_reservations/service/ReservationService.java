@@ -348,4 +348,116 @@ public class ReservationService {
             return new ArrayList<>();
         }
     }
+
+    /**
+     * Obtiene todas las reservaciones (para admin)
+     */
+    public List<Reservation> findAllReservations() {
+        return reservationRepository.findAll();
+    }
+
+    /**
+     * Obtiene reservaciones agrupadas por fecha para admin (todas las reservas)
+     */
+    public java.util.Map<String, java.util.List<java.util.Map<String, Object>>> getReservationsGroupedByDateForAdmin() {
+        java.util.List<Reservation> allReservations = reservationRepository.findAll();
+        
+        java.util.Map<String, java.util.List<java.util.Map<String, Object>>> byDate = new java.util.HashMap<>();
+
+        for (Reservation r : allReservations) {
+            String key = r.getReservationDate().toString();
+            byDate.computeIfAbsent(key, k -> new java.util.ArrayList<>());
+
+            java.util.Map<String, Object> item = new java.util.HashMap<>();
+            item.put("id", r.getId());
+            item.put("reservationDate", r.getReservationDate().toString());
+            item.put("startTime", r.getStartTime() != null ? r.getStartTime().toString() : null);
+            item.put("endTime", r.getEndTime() != null ? r.getEndTime().toString() : null);
+            item.put("numberOfPeople", r.getNumberOfPeople());
+            item.put("status", r.getStatus() != null ? r.getStatus().name().toLowerCase() : "confirmed");
+            
+            // Información de la sala
+            if (r.getRoom() != null) {
+                java.util.Map<String, Object> room = new java.util.HashMap<>();
+                room.put("id", r.getRoom().getId());
+                room.put("name", r.getRoom().getName());
+                item.put("room", room);
+                item.put("roomName", r.getRoom().getName());
+            }
+            
+            // Información del cliente
+            if (r.getUser() != null) {
+                java.util.Map<String, Object> customer = new java.util.HashMap<>();
+                customer.put("id", r.getUser().getId());
+                customer.put("name", r.getUser().getFullName());
+                customer.put("email", r.getUser().getEmail());
+                customer.put("phone", r.getUser().getPhoneNumber());
+                item.put("customer", customer);
+            }
+
+            byDate.get(key).add(item);
+        }
+
+        return byDate;
+    }
+
+    /**
+     * Marca una reservación como completada (para admin)
+     */
+    public void completeReservationAsAdmin(Integer reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        // Los admin pueden marcar cualquier reserva como completada, sin importar la fecha
+        reservation.setStatus(ReservationStatus.COMPLETED);
+        reservationRepository.save(reservation);
+    }
+
+    /**
+     * Revertir estado de completada a confirmada (para admin)
+     */
+    public void undoCompleteReservation(Integer reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        if (reservation.getStatus() == ReservationStatus.COMPLETED) {
+            reservation.setStatus(ReservationStatus.CONFIRMED);
+            reservationRepository.save(reservation);
+        } else {
+            throw new IllegalArgumentException("Solo se pueden revertir reservaciones completadas");
+        }
+    }
+
+    /**
+     * Revertir estado de CANCELLED a CONFIRMED (para admin)
+     */
+    public void revertCancelledReservation(Integer reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+
+        if (reservation.getStatus() != ReservationStatus.CANCELLED) {
+            throw new IllegalArgumentException("Solo se pueden revertir reservaciones canceladas");
+        }
+
+        // Verificar conflictos antes de reactivar. No excluimos ninguna reserva.
+        List<Reservation> conflicts = findConflictingReservationsComplete(
+                reservation.getRoom().getId(),
+                reservation.getReservationDate(),
+                reservation.getStartTime(),
+                reservation.getEndTime(),
+                null 
+        );
+
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException("No se puede revertir la cancelación, el horario ahora está ocupado.");
+        }
+
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+        
+        Room room = reservation.getRoom();
+        room.setIsAvailable(false);
+        roomRepository.save(room);
+
+        reservationRepository.save(reservation);
+    }
 }
